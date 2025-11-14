@@ -47,7 +47,7 @@ def main():
     notes_dir = USER_DATA / "notes"
     db_path = str(USER_DATA / "vector_db")
 
-    print("=� Building vector database...")
+    print("📦 Building vector database...")
     print(f"   Notes: {notes_dir}")
     print(f"   DB: {db_path}\n")
 
@@ -58,7 +58,7 @@ def main():
     note_files = list(notes_dir.glob("**/*.md"))
 
     if not note_files:
-        print("�  No notes found")
+        print("⚠️  No notes found")
         return
 
     for note_file in note_files:
@@ -66,17 +66,17 @@ def main():
         try:
             chunks = chunk_note_file(str(note_file))
             all_chunks.extend(chunks)
-            print(f"       {len(chunks)} chunks")
+            print(f"      ✓ {len(chunks)} chunks")
         except Exception as e:
-            print(f"       Error: {e}")
+            print(f"      ✗ Error: {e}")
 
     if all_chunks:
-        print(f"\n=� Total: {len(all_chunks)} chunks")
-        print("= Indexing...")
+        print(f"\n📊 Total: {len(all_chunks)} chunks")
+        print("🔄 Indexing...")
         indexer.index_chunks(all_chunks)
-        print(" Done!\n")
+        print("✅ Done!\n")
     else:
-        print("�  No chunks generated\n")
+        print("⚠️  No chunks generated\n")
 
 if __name__ == "__main__":
     main()

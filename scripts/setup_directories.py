@@ -17,12 +17,12 @@ def main():
     skill_dir = Path(__file__).parent.parent
     user_data_dir = skill_dir / "user-data"
 
-    print("=€ Initializing Claude Memory skill...")
+    print("ğŸš€ Initializing Claude Memory skill...")
     print(f"   Skill directory: {skill_dir}")
     print()
 
     # Create directory structure
-    print("=Á Creating directory structure...")
+    print("ğŸ“ Creating directory structure...")
     directories = [
         user_data_dir / "notes" / "daily",
         user_data_dir / "notes" / "topics",
@@ -35,12 +35,12 @@ def main():
 
     for directory in directories:
         directory.mkdir(parents=True, exist_ok=True)
-        print(f"    Created: {directory.relative_to(skill_dir)}")
+        print(f"   âœ“ Created: {directory.relative_to(skill_dir)}")
 
     print()
 
     # Copy template files if they don't exist
-    print("=Ë Setting up persona templates...")
+    print("ğŸ“ Setting up persona templates...")
     templates = [
         ("user-persona-template.md", "user-persona.md"),
         ("ai-persona-template.md", "ai-persona.md"),
@@ -54,23 +54,23 @@ def main():
         target = config_dir / target_name
 
         if target.exists():
-            print(f"     Already exists: {target.relative_to(skill_dir)}")
+            print(f"   â„¹ Already exists: {target.relative_to(skill_dir)}")
         else:
             if source.exists():
                 shutil.copy(source, target)
-                print(f"    Created: {target.relative_to(skill_dir)}")
+                print(f"   âœ“ Created: {target.relative_to(skill_dir)}")
             else:
-                print(f"     Template not found: {source.relative_to(skill_dir)}")
+                print(f"   âš  Template not found: {source.relative_to(skill_dir)}")
 
     print()
-    print(" Initialization complete!")
+    print("âœ… Initialization complete!")
     print()
-    print("=İ Next steps:")
+    print("ğŸ“‹ Next steps:")
     print(f"   1. Add your markdown notes to: {user_data_dir / 'notes'}")
     print(f"   2. Edit your personas in: {config_dir}")
     print(f"   3. Run: .venv/bin/python scripts/build_vector_db.py")
     print()
-    print("=¡ Or simply tell Claude Code to initialize the skill for you!")
+    print("ğŸ’¡ Or simply tell Claude Code to initialize the skill for you!")
 
 
 if __name__ == "__main__":
