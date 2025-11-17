@@ -1,2 +1,2 @@
-chromadb>=0.4.0
-sentence-transformers>=2.2.0
+# Claude Memory Skill - No Python dependencies required!
+# This skill uses Claude Code's native tools (Grep, Read, etc.) instead of external libraries.

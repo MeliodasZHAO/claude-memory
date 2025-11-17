@@ -7,8 +7,9 @@ Claude Code should analyze note format and generate custom chunking logic.
 import sys
 from pathlib import Path
 
-SKILL_DIR = Path(__file__).parent.parent
-sys.path.insert(0, str(SKILL_DIR / "scripts"))
+# scripts -> remembering-anything -> claude-memory
+SKILL_DIR = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(SKILL_DIR / "remembering-anything" / "scripts"))
 
 from chunk_schema import Chunk, validate_chunk
 from vector_indexer import VectorIndexer
@@ -47,9 +48,9 @@ def main():
     notes_dir = USER_DATA / "notes"
     db_path = str(USER_DATA / "vector_db")
 
-    print("📦 Building vector database...")
-    print(f"   Notes: {notes_dir}")
-    print(f"   DB: {db_path}\n")
+    print("[*] Building vector database...")
+    print(f"    Notes: {notes_dir}")
+    print(f"    DB: {db_path}\n")
 
     indexer = VectorIndexer(db_path=db_path)
     indexer.initialize_db()
@@ -58,25 +59,25 @@ def main():
     note_files = list(notes_dir.glob("**/*.md"))
 
     if not note_files:
-        print("⚠️  No notes found")
+        print("[!] No notes found")
         return
 
     for note_file in note_files:
-        print(f"   Processing: {note_file.relative_to(notes_dir)}")
+        print(f"    Processing: {note_file.relative_to(notes_dir)}")
         try:
             chunks = chunk_note_file(str(note_file))
             all_chunks.extend(chunks)
-            print(f"      ✓ {len(chunks)} chunks")
+            print(f"      [OK] {len(chunks)} chunks")
         except Exception as e:
-            print(f"      ✗ Error: {e}")
+            print(f"      [X] Error: {e}")
 
     if all_chunks:
-        print(f"\n📊 Total: {len(all_chunks)} chunks")
-        print("🔄 Indexing...")
+        print(f"\n[-] Total: {len(all_chunks)} chunks")
+        print("[>] Indexing...")
         indexer.index_chunks(all_chunks)
-        print("✅ Done!\n")
+        print("[v] Done!\n")
     else:
-        print("⚠️  No chunks generated\n")
+        print("[!] No chunks generated\n")
 
 if __name__ == "__main__":
     main()

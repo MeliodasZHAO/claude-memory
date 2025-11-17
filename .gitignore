@@ -1,6 +1,9 @@
 # User data - contains personal information
 user-data/
 
+# Local Claude Code settings
+.claude/settings.local.json
+
 # Python virtual environment
 .venv/
 venv/

@@ -33,6 +33,7 @@ class MemoryManager:
             memory_dir: Path to memory directory. If None, uses global path.
         """
         if memory_dir is None:
+            # scripts -> remembering-anything
             skill_dir = Path(__file__).parent.parent
             memory_dir = skill_dir / "user-data" / "memory"
 
@@ -88,6 +89,8 @@ class MemoryManager:
         confidence: float = 1.0,
         tags: Optional[List[str]] = None,
         supersedes: Optional[str] = None,
+        importance: str = "active",
+        context_tags: Optional[List[str]] = None,
     ) -> str:
         """
         Add a new fact memory.
@@ -99,10 +102,22 @@ class MemoryManager:
             confidence: Confidence level (0.0-1.0)
             tags: Optional tags
             supersedes: ID of fact this replaces (will deprecate that fact)
+            importance: Memory importance level (core, active, contextual, archived)
+            context_tags: Context trigger tags (e.g., ["coding", "work"])
 
         Returns:
-            Memory ID
+            Memory ID (or existing memory ID if duplicate found)
         """
+        facts = self._load_json(self.facts_file)
+
+        # Check for duplicate content
+        for existing_id, existing_fact in facts.items():
+            if (existing_fact["status"] == "active" and
+                existing_fact["content"].strip().lower() == content.strip().lower() and
+                existing_fact["category"] == category):
+                # Found duplicate, return existing ID
+                return existing_id
+
         memory_id = create_memory_id()
         timestamp = get_current_timestamp()
 
@@ -118,9 +133,12 @@ class MemoryManager:
             "status": "active",
             "supersedes": supersedes,
             "tags": tags or [],
+            "importance": importance,
+            "context_tags": context_tags or [],
+            "access_count": 0,
+            "last_accessed": None,
         }
 
-        facts = self._load_json(self.facts_file)
         facts[memory_id] = fact
         self._save_json(self.facts_file, facts)
 
@@ -138,6 +156,8 @@ class MemoryManager:
         strength: str = "moderate",
         confidence: float = 1.0,
         tags: Optional[List[str]] = None,
+        importance: str = "active",
+        context_tags: Optional[List[str]] = None,
     ) -> str:
         """
         Add a new preference memory.
@@ -149,10 +169,22 @@ class MemoryManager:
             strength: Preference strength (strong, moderate, weak)
             confidence: Confidence level (0.0-1.0)
             tags: Optional tags
+            importance: Memory importance level (core, active, contextual, archived)
+            context_tags: Context trigger tags (e.g., ["coding", "work"])
 
         Returns:
-            Memory ID
+            Memory ID (or existing memory ID if duplicate found)
         """
+        preferences = self._load_json(self.preferences_file)
+
+        # Check for duplicate content
+        for existing_id, existing_pref in preferences.items():
+            if (existing_pref["status"] == "active" and
+                existing_pref["content"].strip().lower() == content.strip().lower() and
+                existing_pref["category"] == category):
+                # Found duplicate, return existing ID
+                return existing_id
+
         memory_id = create_memory_id()
         timestamp = get_current_timestamp()
 
@@ -168,9 +200,12 @@ class MemoryManager:
             "confidence": confidence,
             "status": "active",
             "tags": tags or [],
+            "importance": importance,
+            "context_tags": context_tags or [],
+            "access_count": 0,
+            "last_accessed": None,
         }
 
-        preferences = self._load_json(self.preferences_file)
         preferences[memory_id] = preference
         self._save_json(self.preferences_file, preferences)
 
@@ -185,6 +220,8 @@ class MemoryManager:
         outcome: Optional[str] = None,
         confidence: float = 1.0,
         tags: Optional[List[str]] = None,
+        importance: str = "active",
+        context_tags: Optional[List[str]] = None,
     ) -> str:
         """
         Add a new experience memory.
@@ -197,10 +234,22 @@ class MemoryManager:
             outcome: Result or lesson learned
             confidence: Confidence level (0.0-1.0)
             tags: Optional tags
+            importance: Memory importance level (core, active, contextual, archived)
+            context_tags: Context trigger tags (e.g., ["coding", "work"])
 
         Returns:
-            Memory ID
+            Memory ID (or existing memory ID if duplicate found)
         """
+        experiences = self._load_json(self.experiences_file)
+
+        # Check for duplicate content
+        for existing_id, existing_exp in experiences.items():
+            if (existing_exp["status"] == "active" and
+                existing_exp["content"].strip().lower() == content.strip().lower() and
+                existing_exp["category"] == category):
+                # Found duplicate, return existing ID
+                return existing_id
+
         memory_id = create_memory_id()
         timestamp = get_current_timestamp()
 
@@ -217,9 +266,12 @@ class MemoryManager:
             "status": "active",
             "tags": tags or [],
             "outcome": outcome,
+            "importance": importance,
+            "context_tags": context_tags or [],
+            "access_count": 0,
+            "last_accessed": None,
         }
 
-        experiences = self._load_json(self.experiences_file)
         experiences[memory_id] = experience
         self._save_json(self.experiences_file, experiences)
 
@@ -409,6 +461,162 @@ class MemoryManager:
                 })
 
         return conflicts
+
+    # ========== Layered Memory Operations ==========
+
+    def get_core_memories(self) -> Dict[str, List[Dict]]:
+        """
+        Get core memories (importance='core') across all types.
+        These are loaded on activation.
+
+        Returns:
+            Dict with keys: facts, preferences, experiences
+        """
+        facts = self._load_json(self.facts_file)
+        prefs = self._load_json(self.preferences_file)
+        exps = self._load_json(self.experiences_file)
+
+        return {
+            "facts": [f for f in facts.values()
+                     if f["status"] == "active" and f.get("importance") == "core"],
+            "preferences": [p for p in prefs.values()
+                          if p["status"] == "active" and p.get("importance") == "core"],
+            "experiences": [e for e in exps.values()
+                          if e["status"] == "active" and e.get("importance") == "core"],
+        }
+
+    def get_memories_by_importance(self, importance_level: str) -> Dict[str, List[Dict]]:
+        """
+        Get memories by importance level.
+
+        Args:
+            importance_level: core, active, contextual, or archived
+
+        Returns:
+            Dict with keys: facts, preferences, experiences
+        """
+        facts = self._load_json(self.facts_file)
+        prefs = self._load_json(self.preferences_file)
+        exps = self._load_json(self.experiences_file)
+
+        return {
+            "facts": [f for f in facts.values()
+                     if f["status"] == "active" and f.get("importance") == importance_level],
+            "preferences": [p for p in prefs.values()
+                          if p["status"] == "active" and p.get("importance") == importance_level],
+            "experiences": [e for e in exps.values()
+                          if e["status"] == "active" and e.get("importance") == importance_level],
+        }
+
+    def query_by_context(self, context_tags: List[str], limit: int = 5) -> List[Dict]:
+        """
+        Query memories by context tags.
+        Used for triggered recall based on conversation topics.
+
+        Args:
+            context_tags: List of context tags to match (e.g., ["coding", "work"])
+            limit: Maximum number of results to return
+
+        Returns:
+            List of matching memories, sorted by relevance
+        """
+        results = []
+
+        # Search across all memory types
+        for file_path in [self.facts_file, self.preferences_file, self.experiences_file]:
+            memories = self._load_json(file_path)
+
+            for memory in memories.values():
+                if memory["status"] != "active":
+                    continue
+
+                # Check if any context_tag matches
+                mem_context_tags = memory.get("context_tags", [])
+                if any(tag in mem_context_tags for tag in context_tags):
+                    results.append(memory)
+
+        # Sort by access_count (most accessed first) and limit
+        results.sort(key=lambda x: x.get("access_count", 0), reverse=True)
+        return results[:limit]
+
+    def mark_accessed(self, memory_id: str, memory_type: str):
+        """
+        Mark a memory as accessed (updates access_count and last_accessed).
+
+        Args:
+            memory_id: Memory ID
+            memory_type: fact, preference, or experience
+        """
+        file_map = {
+            "fact": self.facts_file,
+            "preference": self.preferences_file,
+            "experience": self.experiences_file,
+        }
+
+        if memory_type not in file_map:
+            return
+
+        memories = self._load_json(file_map[memory_type])
+
+        if memory_id in memories:
+            memories[memory_id]["access_count"] = memories[memory_id].get("access_count", 0) + 1
+            memories[memory_id]["last_accessed"] = get_current_timestamp()
+            self._save_json(file_map[memory_type], memories)
+
+    def auto_maintain_importance(self, days_active: int = 7, days_contextual: int = 30):
+        """
+        Automatically maintain memory importance levels based on access patterns.
+
+        Args:
+            days_active: Days threshold for active memories
+            days_contextual: Days threshold for contextual memories
+        """
+        from datetime import datetime, timedelta
+
+        now = datetime.now()
+        active_threshold = now - timedelta(days=days_active)
+        contextual_threshold = now - timedelta(days=days_contextual)
+
+        for file_path in [self.facts_file, self.preferences_file, self.experiences_file]:
+            memories = self._load_json(file_path)
+            updated = False
+
+            for mem_id, memory in memories.items():
+                if memory["status"] != "active":
+                    continue
+
+                # Skip core memories (never auto-demote)
+                if memory.get("importance") == "core":
+                    continue
+
+                last_accessed = memory.get("last_accessed")
+                access_count = memory.get("access_count", 0)
+
+                # If never accessed, use timestamp
+                if not last_accessed:
+                    last_accessed = memory.get("timestamp")
+
+                if last_accessed:
+                    last_dt = datetime.fromisoformat(last_accessed)
+
+                    # Promote to active if accessed frequently within days_active
+                    if last_dt >= active_threshold and access_count >= 3:
+                        if memory.get("importance") != "active":
+                            memory["importance"] = "active"
+                            updated = True
+
+                    # Demote to contextual if not accessed within days_active
+                    elif last_dt < active_threshold and memory.get("importance") == "active":
+                        memory["importance"] = "contextual"
+                        updated = True
+
+                    # Archive if not accessed within days_contextual
+                    elif last_dt < contextual_threshold and memory.get("importance") == "contextual":
+                        memory["importance"] = "archived"
+                        updated = True
+
+            if updated:
+                self._save_json(file_path, memories)
 
     # ========== Utility Functions ==========
 

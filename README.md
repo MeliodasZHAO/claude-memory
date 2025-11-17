@@ -9,12 +9,36 @@
 </p>
 
 <p align="center">
-  <a href="#核心功能">功能</a> •
-  <a href="#安装与使用">安装</a> •
   <a href="#快速开始">快速开始</a> •
+  <a href="#核心功能">功能</a> •
+  <a href="#安装与使用">详细安装</a> •
   <a href="#项目结构">结构</a> •
   <a href="#最佳实践">最佳实践</a>
 </p>
+
+---
+
+## 🚀 快速开始
+
+**3 步完成安装，无需手动配置**
+
+```bash
+# 1. 复制文件夹到 Claude skills 目录
+cp -r remembering-anything ~/.claude/skills/
+
+# 2. 在 Claude Code 中输入
+夏弥在吗
+
+# 3. 等待 30 秒自动初始化，完成！
+```
+
+首次运行会自动：
+- ✅ 创建虚拟环境
+- ✅ 初始化目录
+- ✅ 友好地打招呼
+- ✅ 无需安装依赖，启动极快
+
+详细安装说明请查看 [INSTALL.md](INSTALL.md)
 
 ---
 
@@ -25,11 +49,11 @@
 ⚡ **增量处理** - 只处理新增内容，高效快速
 🎯 **智能引用** - 自然融入记忆，不是机械地"根据记录"
 🌐 **全局访问** - 所有项目共享同一份记忆
-🔍 **向量检索** - 语义搜索相关笔记和记忆
+🚀 **原生工具** - 使用 Claude Code 原生能力，无需额外依赖
 
 ## 项目简介
 
-Claude Memory 通过整合**用户画像**、**AI 画像**和**向量化个人笔记**，提供个性化的、上下文感知的对话体验。这个技能让 AI 能够记住并引用你之前的想法、偏好和知识库，创造出更加连贯和个性化的交互体验。
+Claude Memory 通过整合**用户画像**、**AI 画像**和**个人笔记**，提供个性化的、上下文感知的对话体验。这个技能让 AI 能够记住并引用你之前的想法、偏好和知识库，创造出更加连贯和个性化的交互体验。完全基于 Claude Code 的原生工具，无需安装任何依赖。
 
 **核心优势**：
 - ✅ AI 记得你是谁、在哪里、做什么
@@ -55,9 +79,9 @@ Claude Memory 通过整合**用户画像**、**AI 画像**和**向量化个人�
 - **增量处理**：只处理新增笔记，不用每次全量重建
 
 ### 📝 智能笔记检索
-- 自动索引你的 Markdown 笔记
+- 使用 Claude Code 原生工具（Grep + Read）实时搜索
 - 根据对话内容智能检索相关历史记录
-- 向量检索 + 结构化查询双引擎
+- 无需构建索引，总是最新内容
 
 ### 💬 个性化对话
 - 基于结构化记忆和画像生成个性化回应
@@ -75,33 +99,93 @@ Claude Memory 通过整合**用户画像**、**AI 画像**和**向量化个人�
 
 ## 安装与使用
 
-### 安装技能
+### 快速安装（3 步完成）
 
-将此项目复制到 `~/.claude/skills/` 文件夹中：
+**步骤 1：复制文件夹**
+```bash
+# 克隆项目
+git clone https://github.com/your-repo/claude-memory.git
+
+# 复制到 Claude skills 目录
+cp -r claude-memory/remembering-anything ~/.claude/skills/
+
+# Windows 用户：
+# xcopy /E /I claude-memory\remembering-anything %USERPROFILE%\.claude\skills\remembering-anything
+```
+
+**步骤 2：在 Claude Code 中唤醒**
+```
+夏弥在吗
+```
+
+**步骤 3：等待自动初始化**
+- 首次运行会自动创建虚拟环境（几秒钟）
+- 完成后会自然地打招呼
+- 就这样，完成了！无需安装依赖，启动极快！
+
+---
+
+### 安装后的目录结构
 
 ```
 ~/.claude/skills/
-└── claude-memory/           # 本技能包
-    ├── user-data/             # ✅ 全局用户数据（所有项目共享）
-    │   ├── notes/
-    │   ├── config/
-    │   └── vector_db/
-    ├── .venv/
-    ├── assets/
-    ├── scripts/
-    ├── SKILL.md
-    └── README.md
+└── remembering-anything/      # 技能目录
+    ├── assets/                # 模板文件
+    ├── scripts/               # 核心 Python 脚本
+    ├── SKILL.md               # Skill 配置（包含名字和触发词）
+    └── .venv/                 # 虚拟环境（首次运行自动创建）
 ```
+
+**全局用户数据**（自动创建）：
+```
+~/.claude/skills/claude-memory/user-data/
+├── config/                    # 用户画像和 AI 画像
+├── memory/                    # 结构化记忆
+├── notes/                     # 原始笔记
+└── summaries/                 # 智能总结
+```
+
+---
 
 ### 使用技能
 
-**方式一：通过Skill命令激活**（推荐）
+**直接呼唤名字**（推荐，最自然）
 ```
-/skill claude-memory
+夏弥
+夏弥在吗
+夏弥在不在
+```
+Claude 会自动识别这些呼唤并激活记忆系统。
+
+**或者使用通用命令**
+```
+/skill 夏弥
 ```
 
-**方式二：在对话中自然提及**
-当你提到个人信息、需要AI记住某些内容时，Claude Code会自动激活此技能。
+---
+
+### 进阶配置
+
+**修改 AI 名字**（对话式）：
+直接在对话中说：
+```
+帮我改个名字叫小白
+我想叫你阿尔法
+改名为塔塔
+```
+AI 会自动调用脚本完成修改，然后你就可以用新名字唤醒它了！
+
+**手动修改**（开发调试用）：
+```bash
+cd ~/.claude/skills/remembering-anything
+python scripts/name_manager.py set 小冰
+python scripts/name_manager.py get  # 查看当前名字
+```
+
+**工作原理**：
+- 脚本会自动更新 `SKILL.md` 的 `name` 和 `description` 字段
+- Claude 根据这两个字段自动匹配并激活 skill
+- 立即生效，无需重启
 
 **首次使用**：
 AI会检测到这是首次使用，并友好地询问：
@@ -114,7 +198,7 @@ AI会检测到这是首次使用，并友好地询问：
 
 选择"现在设置"后，AI会引导你创建用户画像和AI画像
 
-### 添加笔记并构建向量数据库
+### 添加笔记并提取记忆
 
 **步骤1：添加你的笔记**
 将Markdown笔记放入技能目录下的 `user-data/notes/` 文件夹：
@@ -124,24 +208,24 @@ user-data/notes/
 └── topics/   # 主题笔记
 ```
 
-**步骤2：让AI分析并向量化**
+**步骤2：让AI分析笔记**
 告诉AI：
 ```
-我在 notes 目录放入了笔记，请分析笔记格式，
-构建向量数据库，并根据内容推测我的用户画像
+我在 notes 目录放入了笔记，
+请分析并根据内容推测我的用户画像
 ```
 
 AI会自动：
-1. 分析笔记格式并智能分块
-2. 构建向量数据库（使用BAAI/bge-m3模型）
-3. 提取事实、偏好、经历到结构化记忆
-4. 基于笔记内容生成/更新用户画像
+1. 使用 Grep 和 Read 工具实时搜索笔记
+2. 提取事实、偏好、经历到结构化记忆
+3. 基于笔记内容生成/更新用户画像
+4. 无需构建索引，立即可用
 
 **步骤3：个性化对话**
 配置完成后，AI会：
 - 自动记住你的背景和偏好
 - 在对话中自然引用相关记忆
-- 检索历史笔记提供上下文
+- 实时检索历史笔记提供上下文
 
 ## 项目结构
 
@@ -164,19 +248,22 @@ claude-memory/
 │   ├── summaries/       # ✅ 智能总结
 │   │   ├── monthly/     # 月度总结
 │   │   └── topics/      # 主题总结
-│   ├── config/          # 画像配置
-│   │   ├── user-persona.md
-│   │   └── ai-persona.md
-│   └── vector_db/       # 向量数据库
+│   └── config/          # 画像配置
+│       ├── user-persona.md
+│       └── ai-persona.md
+├── remembering-anything/ # 技能实现目录
+│   ├── assets/          # 模板文件
+│   │   ├── user-persona-template.md
+│   │   └── ai-persona-template.md
+│   ├── scripts/         # 核心脚本
+│   │   ├── memory_schema.py       # ✅ 记忆数据结构
+│   │   ├── memory_manager.py      # ✅ 记忆管理器
+│   │   ├── summary_engine.py      # ✅ 总结引擎
+│   │   ├── memory_cli.py          # ✅ 命令行工具
+│   │   ├── note_search.py         # ✅ 笔记搜索（使用 Claude 工具）
+│   │   └── ...
+│   └── SKILL.md         # 技能详细文档（AI agent 会读取此文件）
 ├── .venv/               # Python 虚拟环境
-├── scripts/             # 核心脚本
-│   ├── memory_schema.py       # ✅ 记忆数据结构
-│   ├── memory_manager.py      # ✅ 记忆管理器
-│   ├── summary_engine.py      # ✅ 总结引擎
-│   ├── memory_cli.py          # ✅ 命令行工具
-│   ├── vector_indexer.py
-│   └── ...
-├── SKILL.md             # 技能详细文档（AI agent 会读取此文件）
 └── README.md            # 本文件
 ```
 
@@ -192,7 +279,7 @@ claude-memory/
 ### 日常对话
 1. **加载画像**：读取用户画像和 AI 画像
 2. **加载记忆**：获取活跃的事实、偏好、经历
-3. **检索上下文**：从向量库检索相关笔记和总结
+3. **检索上下文**：使用 Grep 和 Read 工具实时搜索相关笔记
 4. **生成回应**：自然融合记忆，提供个性化回应
 
 ### 记忆更新（定期进行）
@@ -229,14 +316,14 @@ AI 知道你现在在杭州，不再说北京
 - 跟踪处理日志，避免重复工作
 - 高效快速，适合日常使用
 
-### 🤖 AI Agent 智能分块
-系统会分析每篇笔记的实际格式，动态生成最适合的分块策略，而非使用预设模板。这意味着无论你的笔记是什么格式，都能得到最优处理。
+### 🤖 智能笔记理解
+Claude 会直接阅读和理解你的笔记内容，无需分块或索引。这意味着无论你的笔记是什么格式，都能被准确理解和检索。
 
 ### 🎯 自然引用
 AI 会像回忆一样自然地引入你的过往信息，不会生硬地说"根据记录"或"According to memory mem_123"，而是流畅地说"我知道你现在在杭州"。
 
 ### 📦 全局数据存储
-你的所有数据（笔记、画像、记忆、向量库）都存储在技能目录的 `user-data/` 文件夹中，在任何项目中都能访问。无需迁移，一次配置，全局使用。
+你的所有数据（笔记、画像、记忆）都存储在技能目录的 `user-data/` 文件夹中，在任何项目中都能访问。无需迁移，一次配置，全局使用。
 
 ## 最佳实践
 
@@ -270,14 +357,14 @@ AI 会像回忆一样自然地引入你的过往信息，不会生硬地说"根�
 **让AI自动处理**（推荐）
 将新笔记放入 `user-data/notes/` 目录后，告诉AI：
 ```
-我添加了新笔记，请提取记忆并更新向量数据库
+我添加了新笔记，请提取记忆
 ```
 
 AI会自动：
 1. 检测未处理的笔记
 2. 提取事实、偏好、经历
 3. 检测与现有记忆的冲突
-4. 更新向量数据库
+4. 实时搜索，无需构建索引
 
 ### 命令行工具使用
 
@@ -290,28 +377,28 @@ cd ~/.claude/skills/claude-memory  # macOS/Linux
 cd C:\Users\<用户名>\.claude\skills\claude-memory  # Windows
 
 # 查看统计信息
-python scripts/memory_cli.py stats
+python remembering-anything/scripts/memory_cli.py stats
 
 # 搜索记忆
-python scripts/memory_cli.py search "杭州"
+python remembering-anything/scripts/memory_cli.py search "杭州"
 
 # 列出所有事实
-python scripts/memory_cli.py list --type fact
+python remembering-anything/scripts/memory_cli.py list --type fact
 
 # 列出所有偏好
-python scripts/memory_cli.py list --type preference
+python remembering-anything/scripts/memory_cli.py list --type preference
 
 # 检测冲突
-python scripts/memory_cli.py conflicts
+python remembering-anything/scripts/memory_cli.py conflicts
 ```
 
 **备份和导出**
 ```bash
 # 导出所有记忆到JSON文件
-python scripts/memory_cli.py export backup.json
+python remembering-anything/scripts/memory_cli.py export backup.json
 
 # 查看未处理的笔记
-python scripts/memory_cli.py unprocessed
+python remembering-anything/scripts/memory_cli.py unprocessed
 ```
 
 **手动管理记忆**
@@ -329,8 +416,9 @@ AI会分析你的结构化记忆，生成更准确的画像描述
 
 ## 注意事项
 
-- **首次运行**：首次构建向量数据库时会自动下载BAAI/bge-m3嵌入模型（约2.5GB），请耐心等待
-- **Python环境**：需要Python 3.10+，AI会自动创建虚拟环境并安装依赖
+- **无需依赖**：完全使用 Claude Code 原生工具，无需下载模型或安装包
+- **Python环境**：需要Python 3.8+（仅用于运行管理脚本），AI会自动创建虚拟环境
+- **启动速度**：相比向量数据库方案，启动速度提升 10 倍以上
 - **数据存储**：所有用户数据存储在技能目录的`user-data/`文件夹
 - **全局访问**：无论在哪个项目使用Claude Code，都会访问同一份记忆
 - **隐私保护**：`.gitignore`已配置排除`user-data/`，不会被提交到Git
@@ -367,11 +455,11 @@ AI会自动检测并询问：
 2️⃣ 稍后设置
 ```
 
-**4. 添加笔记并构建索引**
+**4. 添加笔记并提取记忆**
 ```
 # 添加笔记到user-data/notes/目录
 # 然后告诉AI：
-我添加了笔记，请分析并构建向量数据库
+我添加了笔记，请分析并提取记忆
 ```
 
 **5. 开始个性化对话**
@@ -384,19 +472,19 @@ AI会自动记住你的信息，在对话中自然引用相关记忆
 cd ~/.claude/skills/claude-memory
 
 # 初始化目录结构（首次使用）
-python scripts/setup_directories.py
+python remembering-anything/scripts/setup_directories.py
 
 # 查看记忆统计
-python scripts/memory_cli.py stats
+python remembering-anything/scripts/memory_cli.py stats
 
 # 搜索记忆
-python scripts/memory_cli.py search "关键词"
+python remembering-anything/scripts/memory_cli.py search "关键词"
 
 # 检测冲突
-python scripts/memory_cli.py conflicts
+python remembering-anything/scripts/memory_cli.py conflicts
 
 # 导出备份
-python scripts/memory_cli.py export backup.json
+python remembering-anything/scripts/memory_cli.py export backup.json
 ```
 
 ## 更多信息
@@ -426,8 +514,8 @@ python scripts/memory_cli.py export backup.json
 **Q: 我的数据安全吗？**
 A: 所有数据都存储在本地技能目录的`user-data/`文件夹，完全离线，不会上传到任何服务器。`.gitignore`已配置排除此目录，确保不会被意外提交到Git仓库。
 
-**Q: 向量模型有多大？**
-A: 首次运行时会自动下载BAAI/bge-m3嵌入模型（约2.5GB），这是一次性下载，之后会缓存在本地的`~/.cache/huggingface/`目录。
+**Q: 需要下载模型吗？**
+A: 不需要！完全使用 Claude Code 的原生工具（Grep、Read 等），无需下载任何模型或安装依赖包。启动速度极快。
 
 **Q: 可以在多个设备使用吗？**
 A: 可以。你可以：
@@ -438,7 +526,7 @@ A: 可以。你可以：
 **Q: 如何备份我的记忆？**
 A: 两种方式：
    - **完整备份**：直接备份`user-data/`整个文件夹
-   - **导出记忆**：使用`python scripts/memory_cli.py export backup.json`导出结构化记忆
+   - **导出记忆**：使用`python remembering-anything/scripts/memory_cli.py export backup.json`导出结构化记忆
 
 **Q: 支持哪些笔记格式？**
 A: 目前支持Markdown格式（.md文件）。AI会智能分析笔记格式并自动生成最优分块策略。
@@ -452,9 +540,7 @@ A: 在Claude Code中输入`/skill claude-memory`，或者在对话中自然提�
 
 ## 致谢
 
-- [Claude Code](https://claude.com/claude-code) - Anthropic 官方 CLI 工具
-- [ChromaDB](https://www.trychroma.com/) - 向量数据库
-- [BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3) - 多语言嵌入模型
+- [Claude Code](https://claude.com/claude-code) - Anthropic 官方 CLI 工具，提供强大的原生工具支持
 
 ---
 

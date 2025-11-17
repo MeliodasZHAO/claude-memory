@@ -23,6 +23,12 @@ class BaseMemory(TypedDict):
     status: Literal["active", "deprecated", "conflicted"]
     tags: List[str]
 
+    # Memory layering fields
+    importance: Literal["core", "active", "contextual", "archived"]  # Memory importance level
+    context_tags: List[str]  # Trigger scenarios/topics (e.g., ["coding", "work"])
+    access_count: int  # Number of times accessed
+    last_accessed: Optional[str]  # Last access timestamp (ISO format)
+
 
 class FactMemory(BaseMemory):
     """Memory representing a factual statement about the user."""

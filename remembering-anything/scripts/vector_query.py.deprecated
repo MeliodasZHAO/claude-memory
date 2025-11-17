@@ -13,8 +13,8 @@ from sentence_transformers import SentenceTransformer
 
 def _get_default_db_path() -> str:
     """Get the default global database path in the skill directory."""
-    # Get the skill directory (parent of scripts directory)
-    skill_dir = Path(__file__).parent.parent
+    # Get the skill directory (scripts -> remembering-anything -> claude-memory)
+    skill_dir = Path(__file__).parent.parent.parent
     return str(skill_dir / "user-data" / "vector_db")
 
 

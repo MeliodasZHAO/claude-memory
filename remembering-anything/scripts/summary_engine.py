@@ -16,6 +16,7 @@ Return structured JSON format.
 
 class SummaryEngine:
     def __init__(self, notes_dir: Optional[str] = None, memory_dir: Optional[str] = None):
+        # scripts -> remembering-anything
         skill_dir = Path(__file__).parent.parent
         self.notes_dir = Path(notes_dir) if notes_dir else skill_dir / "user-data" / "notes"
         self.memory_dir = Path(memory_dir) if memory_dir else skill_dir / "user-data" / "memory"
