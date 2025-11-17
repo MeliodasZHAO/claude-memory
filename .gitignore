@@ -1,6 +1,10 @@
 # User data - contains personal information
 user-data/
 
+# Deprecated files (old vector database implementation)
+*.deprecated
+**/vector_db/
+
 # Local Claude Code settings
 .claude/settings.local.json
 

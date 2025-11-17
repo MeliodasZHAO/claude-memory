@@ -43,16 +43,11 @@ xcopy /E /I claude-memory\remembering-anything %USERPROFILE%\.claude\skills\reme
 
 **修改 AI 名字**（可选）：
 
-对话式修改（推荐）：
+直接在对话中说：
 ```
 帮我改个名字叫小白
 我想叫你阿尔法
-```
-
-手动修改：
-```bash
-cd ~/.claude/skills/remembering-anything
-python scripts/name_manager.py set 你喜欢的名字
+改名为塔塔
 ```
 
 ---
@@ -66,7 +61,7 @@ A: 只需几秒钟！无需下载模型或安装依赖包，相比之前的版�
 A: 输入"夏弥在吗"，如果 AI 以友好的方式回应，就说明成功了。
 
 **Q: 不喜欢"夏弥"这个名字？**
-A: 直接在对话中说"帮我改个名字叫XX"，或运行 `python scripts/name_manager.py set 新名字`。
+A: 直接在对话中说"帮我改个名字叫XX"即可。
 
 **Q: 需要安装什么依赖吗？**
 A: 不需要！完全使用 Claude Code 的原生工具（Grep、Read 等），无需任何额外依赖。

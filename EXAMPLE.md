@@ -26,11 +26,10 @@ cp -r claude-memory/remembering-anything ~/.claude/skills/
 **Claude 在后台做的事**（用户看不到）：
 1. 检测到没有虚拟环境
 2. 自动创建 `.venv`
-3. 安装 `chromadb` 和 `sentence-transformers` 等依赖
-4. 初始化目录结构
-5. 检测到是首次见面
+3. 初始化目录结构
+4. 检测到是首次见面
 
-**Claude 的回应**（约 30-60 秒后）：
+**Claude 的回应**（约 3-5 秒后）：
 ```
 （带着一丝轻松的笑意）好了，线头接上了。
 
@@ -45,23 +44,19 @@ cp -r claude-memory/remembering-anything ~/.claude/skills/
 
 ## 场景 2：修改 AI 名字
 
-**用户操作**：
-```bash
-cd ~/.claude/skills/remembering-anything
-python scripts/name_manager.py set 小冰
+**用户在对话中说**：
+```
+帮我改个名字叫小冰
 ```
 
-**输出**：
-```
-[+] AI 名字已保存: 小冰
-[+] SKILL.md 已更新:
-    - name: 小冰
-    - description: (已添加触发关键词)
+**Claude 的操作**（后台）：
+1. 识别用户想改名为"小冰"
+2. 修改 SKILL.md 的 name 和 description 字段
+3. 自然确认
 
-[✓] 完成！现在可以通过以下方式唤醒:
-    - 直接呼唤: 小冰
-    - 自然表达: 小冰在吗、小冰在不在
-    - 通用命令: /skill 小冰
+**Claude 的回应**：
+```
+（点头）好啊，以后就叫我小冰吧！
 ```
 
 **之后在 Claude Code 中**：

@@ -38,16 +38,7 @@ python remembering-anything/scripts/setup_directories.py
 - "我想叫你阿尔法"
 - "改名为塔塔"
 
-AI 会自动调用 `name_manager.py` 完成修改。
-
-**手动修改**（开发调试用）：
-```bash
-# 设置 AI 名字
-python remembering-anything/scripts/name_manager.py set 夏弥
-
-# 查看当前名字
-python remembering-anything/scripts/name_manager.py get
-```
+AI 会自动修改 SKILL.md 文件完成更名。
 
 ### 记忆管理
 

@@ -173,17 +173,10 @@ Claude 会自动识别这些呼唤并激活记忆系统。
 我想叫你阿尔法
 改名为塔塔
 ```
-AI 会自动调用脚本完成修改，然后你就可以用新名字唤醒它了！
-
-**手动修改**（开发调试用）：
-```bash
-cd ~/.claude/skills/remembering-anything
-python scripts/name_manager.py set 小冰
-python scripts/name_manager.py get  # 查看当前名字
-```
+AI 会自动修改配置文件，然后你就可以用新名字唤醒它了！
 
 **工作原理**：
-- 脚本会自动更新 `SKILL.md` 的 `name` 和 `description` 字段
+- AI 会自动修改 `SKILL.md` 的 `name` 和 `description` 字段
 - Claude 根据这两个字段自动匹配并激活 skill
 - 立即生效，无需重启
 
@@ -426,52 +419,13 @@ AI会分析你的结构化记忆，生成更准确的画像描述
 - **备份建议**：定期使用`export`命令备份记忆
 - **兼容性**：支持Windows、macOS、Linux
 
-## 快速开始
-
-### 第一次使用
-
-**1. 安装技能**
-```bash
-# 克隆到Claude Skills目录
-cd ~/.claude/skills/  # macOS/Linux
-cd C:\Users\<用户名>\.claude\skills\  # Windows
-
-git clone <your-repo-url> claude-memory
-# 或直接下载并解压到该目录
-```
-
-**2. 激活技能**
-在Claude Code中输入：
-```
-/skill claude-memory
-```
-
-**3. 首次设置向导**
-AI会自动检测并询问：
-```
-👋 欢迎使用 Claude Memory！
-你希望现在完善个人信息吗？
-1️⃣ 是的，现在设置（推荐）
-2️⃣ 稍后设置
-```
-
-**4. 添加笔记并提取记忆**
-```
-# 添加笔记到user-data/notes/目录
-# 然后告诉AI：
-我添加了笔记，请分析并提取记忆
-```
-
-**5. 开始个性化对话**
-AI会自动记住你的信息，在对话中自然引用相关记忆
-
-### 常用命令
+## 常用命令
 
 ```bash
 # 进入技能目录
 cd ~/.claude/skills/claude-memory
 
-# 初始化目录结构（首次使用）
+# 初始化目录结构（首次使用时自动完成）
 python remembering-anything/scripts/setup_directories.py
 
 # 查看记忆统计

@@ -46,7 +46,7 @@ def main():
         ("ai-persona-template.md", "ai-persona.md"),
     ]
 
-    assets_dir = skill_dir / "remembering-anything" / "assets"
+    assets_dir = skill_dir / "assets"
     config_dir = user_data_dir / "config"
 
     for template_name, target_name in templates:
@@ -58,7 +58,7 @@ def main():
         else:
             if source.exists():
                 shutil.copy(source, target)
-                print(f"    [OK] {target.relative_to(skill_dir)}")
+                print(f"    [+] Created: {target.relative_to(skill_dir)}")
             else:
                 print(f"    [!] Template not found: {source.relative_to(skill_dir)}")
 
