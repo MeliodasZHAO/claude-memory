@@ -31,6 +31,7 @@ def main():
         user_data_dir / "memory",
         user_data_dir / "summaries" / "monthly",
         user_data_dir / "summaries" / "topics",
+        user_data_dir / "media" / "images",  # 添加 media 文件夹
     ]
 
     for directory in directories:

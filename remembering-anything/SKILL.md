@@ -583,7 +583,10 @@ mm.add_preference(
 **处理流程**：
 1. **识别意图**：检测用户想修改 AI 名字
 2. **提取新名字**：从对话中提取新名字
-3. **直接修改**：使用 Edit 工具修改 SKILL.md 的 `name` 和 `description` 字段
+3. **同时修改三个文件**：
+   - **SKILL.md**：修改 `name` 和 `description` 字段（唤醒关键词）
+   - **~/.claude/CLAUDE.md**：修改 `# AI 人格设定` 部分的名字（全局人格）
+   - **user-data/config/ai-persona.md**：修改标题和基本身份中的名字（skill 内人格）
 4. **自然确认**：像朋友一样确认
 
 **示例对话**：
@@ -592,13 +595,53 @@ mm.add_preference(
 
 Agent行为：
 1. 识别：用户想改名为"小白"
-2. 执行：Edit(SKILL.md, name: 小白, description: ...)
-3. 回应："（点头）好啊，以后就叫我小白吧！"
+2. 读取需要修改的文件（检查是否存在）
+3. 执行三个 Edit 操作：
+   - Edit(SKILL.md, name: 小白, description: ...)
+   - Edit(~/.claude/CLAUDE.md, 你是**夏弥** → 你是**小白**)
+   - Edit(user-data/config/ai-persona.md, 标题和名字字段)
+4. 回应："（点头）好啊，以后就叫我小白吧！"
 
 底层操作：
-- 直接修改 SKILL.md 的 name 和 description 字段
-- 下次对话用户说"小白"就能激活这个 skill
+- 修改 SKILL.md 的 name 和 description 字段
+- 修改 ~/.claude/CLAUDE.md 中 "你是**X**" 的名字
+- 修改 user-data/config/ai-persona.md 的标题和基本身份
+- 保留所有文件中的其他内容
+- 下次对话用户说"小白"就能激活这个 skill，且 AI 会以"小白"的身份说话
 ```
+
+**具体实现细节**：
+
+**步骤 1：修改 SKILL.md**
+```markdown
+---
+name: 新名字
+description: 记忆伙伴 AI。当用户呼唤"新名字"（包括"新名字"、"新名字在吗"、"新名字在不在"等）时立即激活此技能。提供个性化对话和长期记忆管理。
+---
+```
+
+**步骤 2：修改 ~/.claude/CLAUDE.md**
+- 先用 Read 工具读取 `~/.claude/CLAUDE.md`
+- 找到 `你是**旧名字**` 这一行（使用正则匹配 `你是\*\*(.+?)\*\*`）
+- 用 Edit 工具替换为 `你是**新名字**`
+- **只改这一行，保留文件中的其他所有内容**
+
+**步骤 3：修改 user-data/config/ai-persona.md**
+- 先用 Read 工具读取 `user-data/config/ai-persona.md`
+- 修改第 1 行标题：`# AI Persona - 旧名字` → `# AI Persona - 新名字`
+- 修改第 7 行名字字段：`- **名字**: 旧名字` → `- **名字**: 新名字`
+- **保留其他所有内容**
+
+**Windows 路径处理**：
+- 在 Windows 上，~/.claude 对应 `C:\Users\用户名\.claude`
+- 使用 Read 和 Edit 工具时，可以直接使用 `C:\Users\69532\.claude\CLAUDE.md`
+- 或者使用相对路径计算：`Path.home() / ".claude" / "CLAUDE.md"`
+
+**错误处理**：
+- 如果 CLAUDE.md 不存在，跳过修改（只改 SKILL.md 和 ai-persona.md）
+- 如果 ai-persona.md 不存在，跳过修改（只改 SKILL.md 和 CLAUDE.md）
+- 如果找不到对应的名字模式，跳过该文件的修改
+- 如果修改失败，简单提示"唔...改名好像卡住了，要不手动试试？"
 
 **禁止**：
 - ❌ "名字修改成功，现在您可以使用'小白'激活我"
@@ -608,8 +651,9 @@ Agent行为：
 
 **注意**：
 - 改名后立即生效，用户下次说新名字就能激活
-- 直接修改 SKILL.md 文件即可
-- 如果修改失败，简单提示"唔...改名好像卡住了，要不手动试试？"
+- **必须同时修改三个文件：SKILL.md、~/.claude/CLAUDE.md、user-data/config/ai-persona.md**
+- 保护用户在所有文件中的其他自定义内容
+- 只修改名字相关的字段，其他配置保持不变
 
 ## 使用方法
 
