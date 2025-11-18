@@ -91,6 +91,7 @@ class MemoryManager:
         supersedes: Optional[str] = None,
         importance: str = "active",
         context_tags: Optional[List[str]] = None,
+        attachments: Optional[List[str]] = None,
     ) -> str:
         """
         Add a new fact memory.
@@ -137,6 +138,7 @@ class MemoryManager:
             "context_tags": context_tags or [],
             "access_count": 0,
             "last_accessed": None,
+            "attachments": attachments,
         }
 
         facts[memory_id] = fact
@@ -158,6 +160,7 @@ class MemoryManager:
         tags: Optional[List[str]] = None,
         importance: str = "active",
         context_tags: Optional[List[str]] = None,
+        attachments: Optional[List[str]] = None,
     ) -> str:
         """
         Add a new preference memory.
@@ -204,6 +207,7 @@ class MemoryManager:
             "context_tags": context_tags or [],
             "access_count": 0,
             "last_accessed": None,
+            "attachments": attachments,
         }
 
         preferences[memory_id] = preference
@@ -222,6 +226,7 @@ class MemoryManager:
         tags: Optional[List[str]] = None,
         importance: str = "active",
         context_tags: Optional[List[str]] = None,
+        attachments: Optional[List[str]] = None,
     ) -> str:
         """
         Add a new experience memory.
@@ -270,6 +275,7 @@ class MemoryManager:
             "context_tags": context_tags or [],
             "access_count": 0,
             "last_accessed": None,
+            "attachments": attachments,
         }
 
         experiences[memory_id] = experience

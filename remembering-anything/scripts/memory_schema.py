@@ -29,6 +29,9 @@ class BaseMemory(TypedDict):
     access_count: int  # Number of times accessed
     last_accessed: Optional[str]  # Last access timestamp (ISO format)
 
+    # Media attachments
+    attachments: Optional[List[str]]  # Relative paths to media files (e.g., ["media/images/cat.jpg"])
+
 
 class FactMemory(BaseMemory):
     """Memory representing a factual statement about the user."""
