@@ -16,6 +16,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from collections import Counter
 import random
+from path_config import get_user_data_dir, get_outputs_dir
 
 
 class MemoryVisualizer:
@@ -24,9 +25,8 @@ class MemoryVisualizer:
     def __init__(self):
         """Initialize the visualizer."""
         # Get paths
-        self.skill_dir = Path(__file__).parent.parent
-        self.user_data = self.skill_dir / "user-data"
-        self.output_dir = self.user_data / "outputs" / "html" / "basic"
+        self.user_data = get_user_data_dir()
+        self.output_dir = get_outputs_dir() / "html" / "basic"
 
         # Create output directory
         self.output_dir.mkdir(parents=True, exist_ok=True)
