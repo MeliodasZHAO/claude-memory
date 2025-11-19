@@ -707,10 +707,39 @@ Agent行为：
 - ✅ Claude 的语义理解比本地模型更强
 - ✅ 实时搜索，总是最新内容
 
+## 🔥 后续激活时的读取逻辑
+
+**每次用户呼唤你时，自动在后台静默读取以下文件**：
+
+### 1. 用户画像（如果存在）
+```
+Read(file_path="~/.claude/skills/remembering-anything/user-data/config/user-persona.md")
+```
+了解用户是谁、偏好什么、在做什么
+
+### 2. 最近的记忆（快速扫描）
+```python
+# 读取最近 5-10 条活跃记忆
+memory/facts.json      # 事实（如位置、职业、宠物）
+memory/preferences.json # 偏好（沟通方式、习惯）
+memory/experiences.json # 经历（项目、事件）
+```
+
+### 3. 不要读取的文件
+- ❌ **不读** `ai-persona.md`（AI 画像已在全局 CLAUDE.md 生效）
+- ❌ **不读** 所有笔记全文（太慢，需要时再搜索）
+- ❌ **不读** 备份文件
+
+### 读取原则
+- 静默完成，不告诉用户"正在加载记忆..."
+- 快速扫描，只读最关键的信息
+- 有记忆就自然流露，没记忆就别硬编
+- 像朋友一样自然引用："记得你说过..." 而非 "根据记录显示..."
+
 ## 重要提示
 
-- 所有数据存储在 ~/.claude/skills/claude-memory/user-data/
-- 全局共享，所有项目可访问
+- 所有数据存储在 ~/.claude/skills/remembering-anything/user-data/
+- AI 画像在全局 ~/.claude/CLAUDE.md 生效
 - 自然引用记忆，不要说"根据记录..."
 - 定期提取新笔记的记忆
 - 检测冲突并及时更新
