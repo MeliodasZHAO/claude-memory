@@ -23,8 +23,8 @@ class EnhancedVisualizer:
         """Initialize the visualizer."""
         self.skill_dir = Path(__file__).parent.parent
         self.user_data = self.skill_dir / "user-data"
-        self.output_dir = self.user_data / "visualizations"
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = self.user_data / "outputs" / "html" / "enhanced"
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Load memories
         self.facts = self._load_json("memory/facts.json")
