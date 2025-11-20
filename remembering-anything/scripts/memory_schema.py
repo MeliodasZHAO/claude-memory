@@ -29,8 +29,9 @@ class BaseMemory(TypedDict):
     access_count: int  # Number of times accessed
     last_accessed: Optional[str]  # Last access timestamp (ISO format)
 
-    # Media attachments
-    attachments: Optional[List[str]]  # Relative paths to media files (e.g., ["media/images/cat.jpg"])
+    # Short-term memory fields
+    expires_at: Optional[str]  # Expiration timestamp (ISO format), for short-term memories
+    is_work_in_progress: bool  # Whether this is an ongoing task/project
 
 
 class FactMemory(BaseMemory):
