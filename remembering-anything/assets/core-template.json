@@ -1,0 +1,36 @@
+{
+  "user": {
+    "birthday": "",
+    "location": ""
+  },
+  "pets": [
+    {
+      "name": "",
+      "type": "",
+      "breed": "",
+      "color": "",
+      "birthday": ""
+    }
+  ],
+  "team": {
+    "formed": "",
+    "members": [
+      {
+        "name": "",
+        "relation": "",
+        "birthday": ""
+      }
+    ],
+    "anniversaries": [
+      {
+        "date": "MM-DD",
+        "description": "",
+        "year": 2025
+      }
+    ]
+  },
+  "preferences": {
+    "gaming": [],
+    "hobbies": []
+  }
+}
