@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-快速加载核心记忆和最近活动
+快速加载核心记忆和最近活动（改进版）
 
 在激活时调用，快速返回必要信息：
 - 核心记忆（你是谁、关键关系）
-- 最近活动（近7天）
+- 最近活动（按日期排序，优先显示最新的）
 - 今天的生日/纪念日
 
 输出 JSON 格式，供 SKILL.md 解析使用
@@ -29,14 +29,20 @@ def load_core():
         return json.load(f)
 
 def load_recent():
-    """加载最近活动（只取最近3条）"""
+    """加载最近活动（按日期排序，取最新的）"""
     recent_file = MEMORY_DIR / "recent.json"
     if not recent_file.exists():
         return []
 
     with open(recent_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-        return data.get("activities", [])[:3]
+        activities = data.get("activities", [])
+
+        # 按日期降序排序（最新的在前）
+        activities.sort(key=lambda x: x.get("date", ""), reverse=True)
+
+        # 只返回最近3条
+        return activities[:3]
 
 def check_special_dates_today(core):
     """检查今天是否有重要日期（生日、纪念日、节日等）"""
@@ -97,7 +103,7 @@ def check_special_dates_today(core):
             "date": today
         })
 
-    # 检查其他纪念日（如项目上线日、搬家日等）
+    # 检查其他纪念日
     for anniversary in core.get("anniversaries", []):
         ann_date = anniversary.get("date", "")
         if ann_date and ann_date[5:] == today:
@@ -118,17 +124,38 @@ def main():
         recent = load_recent()
         special_dates = check_special_dates_today(core)
 
-        # 简化输出 - 包含所有关键信息，避免幻觉
+        # 构建结果 - 包含所有关键信息
         result = {
-            "special_dates": special_dates,  # 今天的所有重要日期
-            "recent": recent[0]["content"][:60] + "..." if recent and len(recent[0]["content"]) > 60 else (recent[0]["content"] if recent else ""),
+            "special_dates": special_dates,
+            "recent": recent[0]["content"] if recent else "",
+            "recent_date": recent[0]["date"] if recent else "",
+            "recent_status": recent[0].get("status", "") if recent else "",
             "user": core.get("user", {}),
-            "pets": [{"name": p["name"], "type": p["type"], "breed": p.get("breed", ""), "color": p.get("color", ""), "birthday": p.get("birthday", "")} for p in core.get("pets", [])],
-            "team": {"formed": core.get("team", {}).get("formed", ""), "members": [{"name": m["name"], "relation": m.get("relation", ""), "birthday": m.get("birthday", "")} for m in core.get("team", {}).get("members", [])]},
+            "pets": [
+                {
+                    "name": p["name"],
+                    "type": p["type"],
+                    "breed": p.get("breed", ""),
+                    "color": p.get("color", ""),
+                    "birthday": p.get("birthday", "")
+                }
+                for p in core.get("pets", [])
+            ],
+            "team": {
+                "formed": core.get("team", {}).get("formed", ""),
+                "members": [
+                    {
+                        "name": m["name"],
+                        "relation": m.get("relation", ""),
+                        "birthday": m.get("birthday", "")
+                    }
+                    for m in core.get("team", {}).get("members", [])
+                ]
+            },
             "preferences": core.get("preferences", {})
         }
 
-        # 写入缓存文件，避免终端编码问题
+        # 写入缓存文件
         cache_file = SKILL_DIR / "user-data" / "memory" / ".quick_load_cache.json"
         with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
@@ -137,8 +164,13 @@ def main():
         print("ok")
 
     except Exception as e:
-        # 出错时返回空结果
-        print(json.dumps({"core": {}, "recent": [], "special_dates": [], "error": str(e)}, ensure_ascii=False))
+        # 出错时返回错误信息
+        print(json.dumps({
+            "error": str(e),
+            "special_dates": [],
+            "recent": "",
+            "user": {}
+        }, ensure_ascii=False))
 
 if __name__ == "__main__":
     main()

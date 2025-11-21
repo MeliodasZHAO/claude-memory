@@ -273,19 +273,13 @@ def main():
 
     reminder = SmartReminder()
 
-    print("=== 智能提醒系统 (夏弥风格) ===\n")
-
-    # Get daily reminders
+    # 静默模式：只输出真正的提醒
     daily_reminders = reminder.get_daily_reminders()
     if daily_reminders:
-        print("今日提醒：")
         for r in daily_reminders:
-            print(f"  {r}")
+            print(r)
             reminder.mark_reminder_shown(r)
-    else:
-        print("（摊手）今天没什么特别要提醒的")
-
-    print()
+    return  # 静默返回
 
     # Test context reminders
     test_contexts = [

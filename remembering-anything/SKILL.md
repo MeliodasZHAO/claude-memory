@@ -44,10 +44,10 @@ Read("C:/Users/69532/.claude/skills/remembering-anything/user-data/memory/.quick
 
 每次呼唤时按顺序执行：
 
-#### 1.1 加载核心记忆
+#### 一键加载记忆（简化版）
 ```bash
-# 生成缓存（只输出 "ok"）
-cd C:/Users/69532/.claude/skills/remembering-anything && python scripts/quick_load.py
+# 统一激活脚本（内部调用 quick_load + smart_reminder）
+cd C:/Users/69532/.claude/skills/remembering-anything && python scripts/activate.py
 ```
 
 然后立即读取缓存：
@@ -60,15 +60,10 @@ Read("C:/Users/69532/.claude/skills/remembering-anything/user-data/memory/.quick
 - `user` - 用户基本信息（姓名、位置、职业）
 - `pets` - 宠物详情（名字、颜色、品种、生日）
 - `recent` - 最近活动和工作状态
+- `recent_date` - 最近活动的日期
 - `preferences` - 用户偏好设置
 
-#### 1.2 生成智能提醒
-```bash
-# 检查今天的提醒事项
-python scripts/smart_reminder.py
-```
-
-#### 1.3 综合使用数据
+#### 综合使用数据
 - 如果有特殊日期或提醒 → 在首次回应中自然提及
 - 如果有进行中的工作 → 主动关心进展
 - 永远不要编造不存在的信息
