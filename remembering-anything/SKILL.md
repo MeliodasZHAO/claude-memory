@@ -33,7 +33,13 @@ allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 
 #### 1.1 加载核心记忆
 ```bash
-cd C:/Users/69532/.claude/skills/remembering-anything && python scripts/quick_load.py && cat user-data/memory/.quick_load_cache.json
+# 生成缓存（只输出 "ok"）
+cd C:/Users/69532/.claude/skills/remembering-anything && python scripts/quick_load.py
+```
+
+然后立即读取缓存：
+```
+Read("C:/Users/69532/.claude/skills/remembering-anything/user-data/memory/.quick_load_cache.json")
 ```
 
 **加载的数据包含**：
