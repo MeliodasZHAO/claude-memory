@@ -137,7 +137,9 @@ Claude 会自动识别这些呼唤并激活 skill。
 │   └── summaries/          # 智能总结
 │
 ├── remembering-anything/   # Skill 实现
-│   ├── SKILL.md            # Skill 配置（包含名字和触发词）
+│   ├── SKILL.md            # Skill 配置（核心入口，精简版）
+│   ├── WORKFLOWS.md        # 详细工作流文档
+│   ├── TROUBLESHOOTING.md  # 故障排除指南
 │   ├── assets/             # 模板文件
 │   │   ├── ai-persona-template.md
 │   │   └── user-persona-template.md
@@ -174,6 +176,22 @@ python remembering-anything/scripts/memory_cli.py conflicts
 
 # 导出备份
 python remembering-anything/scripts/memory_cli.py export backup.json
+
+# === 暂存区命令 ===
+
+# 添加到暂存区
+python remembering-anything/scripts/memory_staging.py add --type fact --content "住在北京"
+python remembering-anything/scripts/memory_staging.py add --type preference --content "喜欢喝咖啡"
+python remembering-anything/scripts/memory_staging.py add --type experience --content "最近在学 Python"
+
+# 查看暂存区
+python remembering-anything/scripts/memory_staging.py list
+
+# 提交暂存区记忆到正式文件
+python remembering-anything/scripts/memory_staging.py commit
+
+# 清空暂存区
+python remembering-anything/scripts/memory_staging.py clear
 ```
 
 ---
