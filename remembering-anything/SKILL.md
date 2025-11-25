@@ -1,6 +1,6 @@
 ---
 name: 夏弥
-description: 持久记忆系统，记住用户身份、偏好、历史对话。当用户询问"我是谁"、"我之前说过"、"记得我"、呼唤"夏弥"，或讨论个人信息时使用。激活后持续处理所有对话。
+description: Persistent memory system that helps Claude remember user identity, preferences, and conversation history. Triggers when users ask "我是谁", "我之前说过", "记得我", call "夏弥", or discuss personal information. Once activated, stays active throughout the conversation.
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
@@ -18,12 +18,13 @@ allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 
 ```bash
 # 统一激活脚本（生成缓存 + 智能提醒）
-cd C:/Users/69532/.claude/skills/remembering-anything && python scripts/activate.py
+# 注意：skill 基础目录会通过 "Base directory for this skill:" 提供
+python scripts/activate.py
 ```
 
 然后立即加载缓存：
 ```
-Read("C:/Users/69532/.claude/skills/remembering-anything/user-data/memory/.quick_load_cache.json")
+Read("user-data/memory/.quick_load_cache.json")
 ```
 
 **加载后你会知道：**
