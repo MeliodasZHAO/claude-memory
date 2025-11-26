@@ -99,13 +99,20 @@ Read("user-data/memory/.quick_load_cache.json")
 
 ### 项目记忆（按项目隔离）
 
-| 类型 | 文件位置 | 用途 |
-|------|----------|------|
-| **任务待办** | `projects/<项目名>/tasks.json` | 待做的事 |
-| **已完成** | `projects/<项目名>/completed.json` | 做完的事 |
-| **架构决策** | `projects/<项目名>/decisions.json` | 为什么这么做 |
-| **踩坑记录** | `projects/<项目名>/pitfalls.json` | 遇到的问题 |
-| **项目上下文** | `projects/<项目名>/context.json` | 技术栈、当前重点 |
+每个项目一个文件：`projects/<项目名>.json`
+
+```json
+{
+  "name": "AnyMem",
+  "description": "备忘录应用",
+  "tech_stack": ["React", "TypeScript"],
+  "current_focus": "AI标签功能",
+  "tasks": [{"title": "负面反馈", "priority": "medium"}],
+  "completed": [{"title": "提示词优化", "date": "2025-11-26"}],
+  "decisions": [],
+  "pitfalls": []
+}
+```
 
 ## 记忆查询优先级
 
@@ -184,23 +191,9 @@ python scripts/memory_staging.py commit # 提交到正式记忆
 
 ## 项目记忆
 
-缓存中 `project_memory` 字段包含当前项目的完整记忆：
+缓存中 `project_memory` 字段包含当前项目的完整记忆（直接是项目 json 的内容）。
 
-```json
-{
-  "project_memory": {
-    "context": { "name": "AnyMem", "tech_stack": ["React", "TS"] },
-    "tasks": { "task_001": { "title": "负面反馈机制", "priority": "medium" } },
-    "completed": { "done_001": { "title": "提示词优化" } },
-    "decisions": { ... },
-    "pitfalls": { ... }
-  }
-}
-```
-
-**如何识别当前项目**：根据 `.quick_load_cache.json` 中的 `project.id` 字段，会自动加载对应项目的记忆。
-
-**添加项目记忆**：在讨论项目时，用户提到"记住这个任务"、"这是个坑"时，用项目记忆类型：
+**添加项目记忆**：用户提到"记住这个任务"、"这是个坑"时：
 ```bash
 python scripts/memory_staging.py add --type task --project AnyMem --content "实现XX"
 python scripts/memory_staging.py add --type pitfall --project AnyMem --content "dayjs时区"

@@ -139,75 +139,76 @@ def clear_staging():
 
 
 def _commit_project_item(item: Dict) -> None:
-    """提交单个项目记忆"""
-    import uuid
-
+    """提交单个项目记忆（每个项目一个 json 文件）"""
     project = item["project"]
     mem_type = item["type"]
     content = item["content"]
 
-    # 确保项目目录存在
-    project_dir = PROJECTS_DIR / project
-    project_dir.mkdir(parents=True, exist_ok=True)
+    # 确保目录存在
+    PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 根据类型确定目标文件
+    # 项目文件路径
+    project_file = PROJECTS_DIR / f"{project}.json"
+
+    # 加载现有数据或创建新结构
+    if project_file.exists():
+        with open(project_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    else:
+        data = {
+            "name": project,
+            "description": "",
+            "tech_stack": [],
+            "current_focus": "",
+            "last_active": datetime.now().strftime("%Y-%m-%d"),
+            "tasks": [],
+            "completed": [],
+            "decisions": [],
+            "pitfalls": []
+        }
+
+    # 更新 last_active
+    data["last_active"] = datetime.now().strftime("%Y-%m-%d")
+
+    # 根据类型添加条目
     if mem_type == "task":
-        target_file = project_dir / "tasks.json"
-        entry_id = f"task_{uuid.uuid4().hex[:3]}"
         entry = {
-            "id": entry_id,
             "title": content,
             "description": "",
             "priority": item.get("priority", "medium"),
-            "status": "pending",
-            "created": datetime.now().isoformat(),
-            "category": item.get("category", "general")
+            "status": "pending"
         }
+        data.setdefault("tasks", []).append(entry)
+
     elif mem_type == "completed":
-        target_file = project_dir / "completed.json"
-        entry_id = f"done_{uuid.uuid4().hex[:3]}"
         entry = {
-            "id": entry_id,
             "title": content,
             "description": "",
-            "completed": datetime.now().strftime("%Y-%m-%d"),
-            "category": item.get("category", "general")
+            "date": datetime.now().strftime("%Y-%m-%d")
         }
+        data.setdefault("completed", []).append(entry)
+
     elif mem_type == "decision":
-        target_file = project_dir / "decisions.json"
-        entry_id = f"dec_{uuid.uuid4().hex[:3]}"
         entry = {
-            "id": entry_id,
             "decision": content,
             "reason": "",
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "category": item.get("category", "architecture")
+            "date": datetime.now().strftime("%Y-%m-%d")
         }
+        data.setdefault("decisions", []).append(entry)
+
     elif mem_type == "pitfall":
-        target_file = project_dir / "pitfalls.json"
-        entry_id = f"pit_{uuid.uuid4().hex[:3]}"
         entry = {
-            "id": entry_id,
             "issue": content,
             "solution": "",
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "category": item.get("category", "general")
+            "date": datetime.now().strftime("%Y-%m-%d")
         }
+        data.setdefault("pitfalls", []).append(entry)
+
     else:
         raise ValueError(f"Unknown project memory type: {mem_type}")
 
-    # 加载现有数据
-    if target_file.exists():
-        with open(target_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    else:
-        data = {}
-
-    # 添加新条目
-    data[entry_id] = entry
-
     # 保存
-    with open(target_file, "w", encoding="utf-8") as f:
+    with open(project_file, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 

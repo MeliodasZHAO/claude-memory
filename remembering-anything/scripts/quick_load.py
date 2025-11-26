@@ -49,7 +49,7 @@ def load_global_memory() -> dict:
 
 
 def load_project_memory(project_id: str) -> dict | None:
-    """加载项目记忆"""
+    """加载项目记忆（每个项目一个 json 文件）"""
     # 尝试多种命名方式
     possible_names = [
         project_id,
@@ -57,23 +57,12 @@ def load_project_memory(project_id: str) -> dict | None:
         project_id.split("/")[-1] if "/" in project_id else project_id
     ]
 
-    project_dir = None
     for name in possible_names:
-        candidate = PROJECTS_DIR / name
+        candidate = PROJECTS_DIR / f"{name}.json"
         if candidate.exists():
-            project_dir = candidate
-            break
+            return load_json_file(candidate)
 
-    if not project_dir:
-        return None
-
-    return {
-        "context": load_json_file(project_dir / "context.json"),
-        "tasks": load_json_file(project_dir / "tasks.json"),
-        "completed": load_json_file(project_dir / "completed.json"),
-        "decisions": load_json_file(project_dir / "decisions.json"),
-        "pitfalls": load_json_file(project_dir / "pitfalls.json")
-    }
+    return None
 
 
 def load_recent() -> list:
