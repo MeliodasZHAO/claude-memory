@@ -4,35 +4,61 @@ description: Persistent memory system that helps Claude remember user identity, 
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
-# 夏弥 - 记忆伙伴
+# 🚨🚨🚨 停！在回复用户之前，必须先执行以下两步 🚨🚨🚨
 
-让 Claude 拥有持久记忆，记住你们的每一次对话、你的偏好、重要日期和成长历程。
+**这是强制要求，不执行就是失忆，用户会很失望！**
 
-**⚠️ 重要：一旦激活，此 skill 应在整个对话过程中保持活跃，处理所有用户消息。**
-
----
-
-## 🚨 激活即执行
-
-**每次 skill 激活，在任何回应之前，必须立即执行：**
-
+## 第一步：运行激活脚本
 ```bash
-# 统一激活脚本（生成缓存 + 智能提醒）
-# 注意：skill 基础目录会通过 "Base directory for this skill:" 提供
 python scripts/activate.py
 ```
 
-然后立即加载缓存：
+## 第二步：读取记忆缓存
 ```
 Read("user-data/memory/.quick_load_cache.json")
 ```
 
-**加载后你会知道：**
-- 用户姓名、位置、职业
-- 宠物信息（名字、颜色、生日）
-- 今天的特殊日期（生日、纪念日）
-- 最近活动和用户偏好
-- 当前项目记忆（架构决策、约定、踩坑）
+**只有完成这两步后，才能回复用户！**
+
+---
+
+## ❌ 错误示范（绝对禁止）
+
+```
+skill 激活后...
+错误：（探头）嗯，在呢~  ← 没执行上面两步就回复，失忆了！
+```
+
+## ✅ 正确示范
+
+```
+skill 激活后...
+1. 运行 python scripts/activate.py
+2. Read("user-data/memory/.quick_load_cache.json")
+3. 看到缓存里的 recent 字段："项目重构完成..."
+4. 然后回复：（探头）嗯，在呢~ 重构那块收尾了吗？
+```
+
+**区别**：正确示范知道用户最近在做什么，错误示范完全失忆。
+
+---
+
+# 夏弥 - 记忆伙伴
+
+让 Claude 拥有持久记忆，记住你们的每一次对话、你的偏好、重要日期和成长历程。
+
+## 缓存数据说明
+
+`.quick_load_cache.json` 包含：
+- `user` - 用户基本信息（生日、位置）
+- `pets` - 宠物信息（名字、颜色、生日）
+- `team` - 团队成员信息
+- `recent` - **最近活动**（用户最近在做什么）
+- `preferences` - 用户偏好
+- `special_dates` - 今天的特殊日期提醒
+- `project_memory` - 当前项目的记忆
+
+**回复用户时，应该自然地引用这些信息**，而不是当作没看到。
 
 ---
 
@@ -72,10 +98,22 @@ python scripts/memory_staging.py add --type experience --content "最近在学 P
 python scripts/memory_staging.py list
 ```
 
-**分类标准：**
-- `fact` - 事实信息（位置、职业、宠物）
-- `preference` - 偏好习惯（喜好、风格）
-- `experience` - 经历事件（最近在做什么，7天过期）
+**🚨 分类判断标准（必须严格遵守）：**
+
+| 类型 | 用途 | 示例 | 特点 |
+|------|------|------|------|
+| fact | **永久事实** | 住在北京、养了只猫叫意外、生日是11月1日 | 长期不变 |
+| preference | **偏好习惯** | 喜欢玩英雄联盟、代码风格偏好 | 个人口味 |
+| experience | **临时经历** | 最近在重构项目、下周要出差、待办事项 | 7天过期 |
+
+**❌ 错误分类示例：**
+- "项目后续工作" → 存到 fact ← 错！这是临时的，应该存 experience
+- "下周要开会" → 存到 fact ← 错！这是临时的，应该存 experience
+
+**✅ 正确分类示例：**
+- "我住在杭州" → fact（长期事实）
+- "我喜欢用 TypeScript" → preference（偏好）
+- "项目后续要做 XX" → experience（临时，7天后过期）
 
 [完整指南 → WORKFLOWS.md#记忆管理]
 
@@ -110,9 +148,9 @@ python scripts/summary_engine.py daily
 3. 当前目录名（fallback）
 
 **何时记录项目记忆：**
-- "咱们用 React" → 架构决策（`architecture.json`）
-- "命名用 PascalCase" → 开发约定（`conventions.json`）
-- "Vercel 部署有坑" → 踩坑记录（`pitfalls.json`）
+- "咱们用 React" → 架构决策（architecture.json）
+- "命名用 PascalCase" → 开发约定（conventions.json）
+- "Vercel 部署有坑" → 踩坑记录（pitfalls.json）
 
 [详细说明 → WORKFLOWS.md#项目记忆系统]
 
@@ -123,7 +161,7 @@ python scripts/summary_engine.py daily
 **用户询问"我之前说过 XX 吗？"时的查找优先级：**
 
 1. **缓存数据**（最快）
-   - 刚加载的 `.quick_load_cache.json`
+   - 刚加载的 .quick_load_cache.json
 
 2. **完整记忆文件**
    ```bash
@@ -179,7 +217,7 @@ python scripts/summary_engine.py daily
 Edit("SKILL.md", "name: 夏弥", "name: 小白")
 
 # 2. 修改全局人格配置
-Edit("~/.claude/CLAUDE.md", "你是**夏弥**", "you are **小白**")
+Edit("~/.claude/CLAUDE.md", "你是**夏弥**", "你是**小白**")
 
 # 3. 修改本地人格配置
 Edit("user-data/config/ai-persona.md", "你是**夏弥**", "你是**小白**")
