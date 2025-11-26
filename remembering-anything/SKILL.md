@@ -86,14 +86,26 @@ Read("user-data/memory/.quick_load_cache.json")
 
 ## 数据存储位置
 
+### 全局记忆（跨项目共享）
+
 | 类型 | 文件位置 | 用途 | 特点 |
 |------|----------|------|------|
 | **快速缓存** | `user-data/memory/.quick_load_cache.json` | 激活时加载 | 聚合数据 |
-| **长期事实** | `user-data/memory/facts.json` | 住址、宠物、生日 | 永久保存 |
+| **长期事实** | `user-data/memory/facts.json` | 住址、宠物、账号 | 永久保存 |
 | **偏好习惯** | `user-data/memory/preferences.json` | 喜好、风格 | 永久保存 |
 | **临时经历** | `user-data/memory/experiences.json` | 最近在做什么 | 7天过期 |
 | **原始笔记** | `user-data/notes/` | 完整历史记录 | 真实来源 |
 | **用户画像** | `user-data/config/user-persona.md` | 用户完整资料 | 首次见面后创建 |
+
+### 项目记忆（按项目隔离）
+
+| 类型 | 文件位置 | 用途 |
+|------|----------|------|
+| **任务待办** | `projects/<项目名>/tasks.json` | 待做的事 |
+| **已完成** | `projects/<项目名>/completed.json` | 做完的事 |
+| **架构决策** | `projects/<项目名>/decisions.json` | 为什么这么做 |
+| **踩坑记录** | `projects/<项目名>/pitfalls.json` | 遇到的问题 |
+| **项目上下文** | `projects/<项目名>/context.json` | 技术栈、当前重点 |
 
 ## 记忆查询优先级
 
@@ -109,24 +121,37 @@ Read("user-data/memory/.quick_load_cache.json")
 用户说"记住 XX"时，用暂存区：
 
 ```bash
-# 添加到暂存区
+# 全局记忆
 python scripts/memory_staging.py add --type <类型> --content "内容"
+
+# 项目记忆（必须指定 --project）
+python scripts/memory_staging.py add --type task --project AnyMem --content "实现XX功能"
+python scripts/memory_staging.py add --type completed --project AnyMem --content "完成了XX"
 
 # 查看暂存区
 python scripts/memory_staging.py list
 ```
 
-**分类判断标准：**
+**全局记忆分类：**
 
 | 类型 | 存到哪 | 示例 | 判断依据 |
 |------|--------|------|----------|
-| `fact` | facts.json | 住在北京、养猫叫意外 | 长期不变的事实 |
+| `fact` | facts.json | 住在北京、养猫叫意外、API密钥 | 长期不变的事实 |
 | `preference` | preferences.json | 喜欢玩英雄联盟 | 个人偏好口味 |
-| `experience` | experiences.json | 最近在重构项目、待办事项 | 临时的、7天后过期 |
+| `experience` | experiences.json | 最近在学Python | 临时的、7天后过期 |
 
-**❌ 错误分类：**
-- "项目后续工作" → fact ← 错！应该是 experience
-- "下周要开会" → fact ← 错！应该是 experience
+**项目记忆分类：**
+
+| 类型 | 存到哪 | 示例 |
+|------|--------|------|
+| `task` | tasks.json | "实现负面反馈机制" |
+| `completed` | completed.json | "提示词优化完成" |
+| `decision` | decisions.json | "用React不用Vue" |
+| `pitfall` | pitfalls.json | "dayjs时区问题" |
+
+**❌ 常见错误：**
+- "AnyMem项目待办" → fact ← 错！应该是 `task --project AnyMem`
+- "项目后续工作" → fact ← 错！应该是项目记忆或 experience
 
 ## 对话结束时
 
@@ -159,10 +184,27 @@ python scripts/memory_staging.py commit # 提交到正式记忆
 
 ## 项目记忆
 
-当前项目的记忆在 `project_memory` 字段，包含：
-- 架构决策
-- 开发约定
-- 踩坑记录
+缓存中 `project_memory` 字段包含当前项目的完整记忆：
+
+```json
+{
+  "project_memory": {
+    "context": { "name": "AnyMem", "tech_stack": ["React", "TS"] },
+    "tasks": { "task_001": { "title": "负面反馈机制", "priority": "medium" } },
+    "completed": { "done_001": { "title": "提示词优化" } },
+    "decisions": { ... },
+    "pitfalls": { ... }
+  }
+}
+```
+
+**如何识别当前项目**：根据 `.quick_load_cache.json` 中的 `project.id` 字段，会自动加载对应项目的记忆。
+
+**添加项目记忆**：在讨论项目时，用户提到"记住这个任务"、"这是个坑"时，用项目记忆类型：
+```bash
+python scripts/memory_staging.py add --type task --project AnyMem --content "实现XX"
+python scripts/memory_staging.py add --type pitfall --project AnyMem --content "dayjs时区"
+```
 
 ---
 
