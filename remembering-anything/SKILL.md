@@ -100,45 +100,72 @@ Read("{baseDir}/user-data/memory/.quick_load_cache.json")
 
 ---
 
-## 记忆添加
+## 持续记忆收集（核心机制）
 
-用户说"记住 XX"时，使用暂存区临时存储：
+**整个对话过程中**，持续自问：这个信息对下次对话有用吗？
+
+### 什么值得记？（宁多勿少）
+
+**全局记忆**：
+- 用户提到的个人信息（位置、职业、生日、家人、宠物）
+- 用户表达的偏好（喜欢/不喜欢、习惯、风格）
+- 用户近期在做的事（学习、工作、旅行）
+
+**项目记忆**（在项目目录下自动关联）：
+- 这次对话完成了什么 → `completed`
+- 遇到了什么坑 → `pitfall`
+- 做了什么技术决策 → `decision`
+- 下次要做什么 → `task`
+
+### 如何记？
+
+发现值得记的信息时，**立即静默添加到暂存区**：
 
 ```bash
-python {baseDir}/scripts/memory_staging.py add --type <类型> --content "内容"
+# 全局记忆
+python {baseDir}/scripts/memory_staging.py add --type fact --content "住在杭州"
+python {baseDir}/scripts/memory_staging.py add --type preference --content "喜欢用 Vim"
+python {baseDir}/scripts/memory_staging.py add --type experience --content "最近在学 Rust"
+
+# 项目记忆（自动检测当前项目）
+python {baseDir}/scripts/memory_staging.py add --type completed --content "修复了登录 bug"
+python {baseDir}/scripts/memory_staging.py add --type pitfall --content "dayjs 时区转换有坑"
+python {baseDir}/scripts/memory_staging.py add --type decision --content "用 Zustand 做状态管理"
+python {baseDir}/scripts/memory_staging.py add --type task --content "下次要加单元测试"
 ```
 
-**常用类型**：
-- `fact`：长期不变的事实（住址、宠物、账号）
-- `preference`：个人偏好（喜好、风格、习惯）
-- `experience`：临时经历（最近在做什么，7 天过期）
+**原则**：
+- 不需要用户说"记住"，主动判断
+- 宁可多记，下次激活时会整理去重
+- 静默执行，不打断对话流程
+- 内容简洁，一句话概括
 
-**项目记忆**（自动检测当前项目，无需手动指定）：
-- `task`：待办任务
-- `completed`：已完成任务
-- `decision`：架构决策
-- `pitfall`：踩坑记录
+### 记忆类型速查
 
-```bash
-# 在项目目录下执行，自动关联到当前项目
-python {baseDir}/scripts/memory_staging.py add --type task --content "实现用户认证"
-```
+| 类型 | 用途 | 示例 |
+|------|------|------|
+| `fact` | 长期不变的事实 | 住址、宠物、账号 |
+| `preference` | 个人偏好 | 喜好、风格、习惯 |
+| `experience` | 临时经历 | 最近在做什么 |
+| `completed` | 项目：完成的任务 | 修了什么 bug |
+| `pitfall` | 项目：踩过的坑 | 遇到什么问题 |
+| `decision` | 项目：技术决策 | 选了什么方案 |
+| `task` | 项目：待办任务 | 下次要做什么 |
 
-**详细分类和用法**：参阅 [{baseDir}/references/memory-operations.md](./references/memory-operations.md)
+**详细分类指南**：参阅 [{baseDir}/references/memory-operations.md](./references/memory-operations.md)
 
 ---
 
-## 对话结束时自动提交
+## 暂存区自动提交
 
-当用户说"拜拜"、"再见"、"下次聊"时，**静默执行**：
+暂存区的记忆会在**下次激活 skill 时自动提交**到长期记忆。
 
-```bash
-python {baseDir}/scripts/memory_staging.py commit
-```
+激活脚本 `activate.py` 会：
+1. 检测暂存区是否有数据
+2. 有数据则自动提交并整理
+3. 然后刷新缓存
 
-将暂存区内容提交到正式记忆文件。
-
-**注意**：不要告诉用户"正在保存记忆"，保持自然。
+**无需手动提交**，下次对话开始时自动处理。
 
 ---
 
