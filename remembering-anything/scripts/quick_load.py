@@ -60,43 +60,35 @@ def load_project_memory(project_id: str) -> dict | None:
     return None
 
 
-def load_recent(project_id: str | None = None) -> list:
+def load_recent_from_experiences() -> dict | None:
     """
-    加载最近活动
+    从 experiences.json 读取最近的经历
 
-    优先级：
-    1. 当前项目的最近活动（如果有 project 字段匹配）
-    2. 全局活动（没有 project 字段的）
+    experiences.json 是会被 memory_staging.py 实际更新的文件
+    返回最近一条 experience，格式：
+    {"content": "...", "date": "...", "status": "active"}
     """
-    recent_file = MEMORY_DIR / "recent.json"
-    if not recent_file.exists():
-        return []
+    experiences_file = MEMORY_DIR / "experiences.json"
+    if not experiences_file.exists():
+        return None
 
-    data = load_json_file(recent_file)
-    activities = data.get("activities", [])
-    activities.sort(key=lambda x: x.get("date", ""), reverse=True)
+    data = load_json_file(experiences_file)
+    if not data:
+        return None
 
-    if not project_id:
-        return activities[:3]
+    # 按 timestamp 排序，取最新的
+    experiences = list(data.values())
+    experiences.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
 
-    # 分离：当前项目的活动 vs 全局活动
-    project_activities = []
-    global_activities = []
+    if not experiences:
+        return None
 
-    for act in activities:
-        act_project = act.get("project")
-        if act_project == project_id:
-            project_activities.append(act)
-        elif act_project is None:
-            global_activities.append(act)
-        # 其他项目的活动不包含
-
-    # 优先返回当前项目的活动，不够再用全局的补充
-    result = project_activities[:3]
-    if len(result) < 3:
-        result.extend(global_activities[:3 - len(result)])
-
-    return result
+    latest = experiences[0]
+    return {
+        "content": latest.get("content", ""),
+        "date": latest.get("timestamp", "")[:10],  # 只取日期部分
+        "status": latest.get("status", "active")
+    }
 
 
 def extract_core_info(global_mem: dict) -> dict:
@@ -200,14 +192,11 @@ def main():
         if project_id:
             project_mem = load_project_memory(project_id)
 
-        # 4. 加载最近活动（优先当前项目的）
-        recent = load_recent(project_id)
-
-        # 5. 检查今天的特殊日期
+        # 4. 检查今天的特殊日期
         special_dates = check_special_dates_today(core)
 
-        # 6. 构建结果
-        # 确定 recent：项目记忆优先于全局 recent
+        # 5. 构建结果
+        # 确定 recent：项目记忆优先于全局 experiences
         recent_content = ""
         recent_date = ""
         recent_status = ""
@@ -228,11 +217,13 @@ def main():
                     recent_date = latest.get("date", "")
                     recent_status = "completed"
 
-        # 如果项目没有活动，使用全局 recent
-        if not recent_content and recent:
-            recent_content = recent[0]["content"]
-            recent_date = recent[0]["date"]
-            recent_status = recent[0].get("status", "")
+        # 如果项目没有活动，使用全局 experiences 的最新记录
+        if not recent_content:
+            global_recent = load_recent_from_experiences()
+            if global_recent:
+                recent_content = global_recent["content"]
+                recent_date = global_recent["date"]
+                recent_status = global_recent.get("status", "")
 
         result = {
             "project": {
