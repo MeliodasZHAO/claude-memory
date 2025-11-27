@@ -5,7 +5,7 @@
 
 功能：
 1. 检查暂存区并自动提交（确保记忆不丢失）
-2. 检查缓存新鲜度（5 分钟内直接使用）
+2. 检查缓存新鲜度（5 分钟内 + 项目匹配才使用）
 3. 运行 quick_load.py 生成缓存（如果需要）
 4. 静默返回
 """
@@ -13,6 +13,7 @@
 import sys
 import os
 import time
+import json
 from pathlib import Path
 
 # 添加脚本目录到路径
@@ -28,15 +29,51 @@ STAGING_FILE = SKILL_DIR / "user-data" / "memory" / ".staging.json"
 CACHE_TTL = 300  # 5 分钟
 
 
+def get_current_project_id() -> str | None:
+    """获取当前项目 ID"""
+    try:
+        from project_detector import detect_project
+        result = detect_project()
+        return result.get("project_id")
+    except Exception:
+        return None
+
+
+def get_cached_project_id() -> str | None:
+    """从缓存文件中读取项目 ID"""
+    if not CACHE_FILE.exists():
+        return None
+
+    try:
+        with open(CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            project = data.get("project", {})
+            return project.get("id") if project else None
+    except Exception:
+        return None
+
+
 def is_cache_fresh() -> bool:
-    """检查缓存是否在有效期内"""
+    """检查缓存是否有效（时间 + 项目匹配）"""
     if not CACHE_FILE.exists():
         return False
 
     try:
+        # 检查时间
         mtime = CACHE_FILE.stat().st_mtime
         age = time.time() - mtime
-        return age < CACHE_TTL
+        if age >= CACHE_TTL:
+            return False
+
+        # 检查项目是否匹配
+        current_project = get_current_project_id()
+        cached_project = get_cached_project_id()
+
+        # 如果项目不匹配，缓存无效
+        if current_project != cached_project:
+            return False
+
+        return True
     except Exception:
         return False
 

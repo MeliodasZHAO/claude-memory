@@ -75,13 +75,26 @@ def save_staging(items: List[Dict]):
         json.dump(items, f, ensure_ascii=False, indent=2)
 
 
+def get_current_project_id() -> Optional[str]:
+    """获取当前项目 ID（自动检测）"""
+    try:
+        from project_detector import detect_project
+        result = detect_project()
+        # 任何来源都可以用：claude_md、git_remote、directory
+        return result.get("project_id")
+    except Exception:
+        pass
+    return None
+
+
 def add_to_staging(
     mem_type: str,
     content: str,
     category: Optional[str] = None,
     tags: Optional[List[str]] = None,
     project: Optional[str] = None,
-    priority: Optional[str] = None
+    priority: Optional[str] = None,
+    auto_detect_project: bool = True
 ) -> Dict:
     """
     添加记忆到暂存区
@@ -93,12 +106,17 @@ def add_to_staging(
         content: 记忆内容
         category: 可选的类别
         tags: 可选的标签列表
-        project: 项目名（项目记忆必填）
+        project: 项目名（项目记忆用，不传则自动检测）
         priority: 任务优先级 (high/medium/low/none，仅 task 类型)
+        auto_detect_project: 是否自动检测项目（默认 True）
 
     Returns:
         添加的条目
     """
+    # 项目记忆类型：如果没传 project，自动检测
+    if mem_type in PROJECT_TYPES and not project and auto_detect_project:
+        project = get_current_project_id()
+
     items = load_staging()
 
     # 检查重复（同项目同类型同内容视为重复）
@@ -147,8 +165,9 @@ def _commit_project_item(item: Dict) -> None:
     # 确保目录存在
     PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 项目文件路径
-    project_file = PROJECTS_DIR / f"{project}.json"
+    # 项目文件路径：统一用 / 替换为 __ 的格式
+    safe_project_name = project.replace("/", "__")
+    project_file = PROJECTS_DIR / f"{safe_project_name}.json"
 
     # 加载现有数据或创建新结构
     if project_file.exists():
@@ -362,14 +381,21 @@ def main():
             print("错误: add 命令需要 --type 和 --content 参数")
             sys.exit(1)
 
-        # 项目记忆必须指定项目名
-        if args.type in PROJECT_TYPES and not args.project:
-            print(f"错误: {args.type} 类型是项目记忆，必须指定 --project 参数")
-            sys.exit(1)
-
         # 全局记忆不应指定项目名
         if args.type in GLOBAL_TYPES and args.project:
             print(f"警告: {args.type} 是全局记忆类型，--project 参数将被忽略")
+
+        # 项目记忆：不传 --project 时自动检测
+        project_for_entry = None
+        if args.type in PROJECT_TYPES:
+            if args.project:
+                project_for_entry = args.project
+            else:
+                # 自动检测当前项目
+                project_for_entry = get_current_project_id()
+                if not project_for_entry:
+                    print(f"错误: 无法自动检测项目，请手动指定 --project 参数")
+                    sys.exit(1)
 
         tags = args.tags.split(',') if args.tags else None
         entry = add_to_staging(
@@ -377,15 +403,17 @@ def main():
             content=args.content,
             category=args.category,
             tags=tags,
-            project=args.project if args.type in PROJECT_TYPES else None,
-            priority=args.priority if args.type == "task" else None
+            project=project_for_entry,
+            priority=args.priority if args.type == "task" else None,
+            auto_detect_project=False  # 已经在上面处理过了
         )
 
         if args.json:
             print(json.dumps(entry, ensure_ascii=False))
         else:
-            if args.project:
-                print(f"[+] 已添加到暂存区: [{entry['type']}@{args.project}] {entry['content']}")
+            project_display = entry.get("project", "")
+            if project_display:
+                print(f"[+] 已添加到暂存区: [{entry['type']}@{project_display}] {entry['content']}")
             else:
                 print(f"[+] 已添加到暂存区: [{entry['type']}] {entry['content']}")
 
