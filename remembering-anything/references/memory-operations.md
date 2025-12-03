@@ -2,6 +2,16 @@
 
 本文档详细说明记忆的分类、暂存区机制和常用操作。
 
+## 目录
+
+- [记忆分类](#记忆分类)
+  - [全局记忆](#全局记忆跨项目共享)（fact / preference / experience）
+  - [项目记忆](#项目记忆按项目隔离)（task / completed / decision / pitfall）
+- [暂存区机制](#暂存区机制)
+- [常见错误](#常见错误)
+- [查询记忆优先级](#查询记忆优先级)
+- [对话结束时自动提交](#对话结束时自动提交)
+
 ---
 
 ## 记忆分类
@@ -189,6 +199,27 @@ python scripts/memory_staging.py add --type fact --content "喜欢用 Vim"
 # 正确
 python scripts/memory_staging.py add --type preference --content "喜欢用 Vim"
 ```
+
+### ❌ 错误 4：学习经历记成 preference
+
+```bash
+# 错误 - "学了什么"不是偏好，是经历！
+python scripts/memory_staging.py add --type preference --content "学习了 Agent Skills 最佳实践"
+
+# 正确
+python scripts/memory_staging.py add --type experience --content "学习了 Agent Skills 最佳实践"
+```
+
+**区分要点**：
+- `preference`（偏好）= **喜欢/不喜欢/偏好** 某种东西或方式
+- `experience`（经历）= **做了/学了/经历了** 某件事
+
+| 内容 | 正确类型 | 原因 |
+|------|----------|------|
+| 喜欢用 TypeScript | preference | 表达偏好 |
+| 学习了 TypeScript | experience | 学习是经历 |
+| 偏好简洁的代码风格 | preference | 表达风格偏好 |
+| 研究了代码风格规范 | experience | 研究是经历 |
 
 ---
 

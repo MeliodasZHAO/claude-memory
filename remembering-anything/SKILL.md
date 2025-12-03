@@ -1,13 +1,25 @@
 ---
 name: remembering-anything
-description: 长期记忆系统，在对话开始时加载用户画像、项目上下文和历史记忆以实现个性化对话。支持跨会话记忆用户偏好、项目决策和重要日期。
-when_to_use: 当需要个性化对话、记住用户背景、了解项目历史或保持跨会话上下文连贯性时使用。通常在每次新对话开始时自动激活。
+description: Use when starting conversations to enable personalized dialogue with long-term memory. Loads user profile, project context, and history. Auto-activates at conversation start for cross-session continuity of preferences, decisions, and dates. (user) - 当需要个性化对话、记住用户背景、了解项目历史或保持跨会话上下文连贯性时使用。
 allowed-tools: Bash(python {baseDir}/scripts/*:*), Read, Grep, Write
 ---
 
 # 记忆系统激活
 
 这个 skill 为 Claude 提供长期记忆能力，通过加载用户画像、项目上下文和历史记忆来实现个性化对话。
+
+---
+
+## 快速参考
+
+| 操作 | 命令 |
+|------|------|
+| **激活** | `python {baseDir}/scripts/activate.py` |
+| **读缓存** | `Read("{baseDir}/user-data/memory/.quick_load_cache.json")` |
+| **记新信息** | `python {baseDir}/scripts/memory_staging.py add --type <类型> --content "<内容>"` |
+| **搜笔记** | `Grep(pattern="关键词", path="{baseDir}/user-data/notes")` |
+
+**记忆类型**：`fact`(事实) / `preference`(偏好) / `experience`(经历) / `task` / `completed` / `decision` / `pitfall`
 
 ---
 
@@ -70,87 +82,102 @@ Read("{baseDir}/user-data/memory/.quick_load_cache.json")
 
 ## 记忆查询
 
-**触发条件**（任意一种）：
-- 用户提到"还记得吗"、"之前说过"、"上次聊的"、"咱们讨论过"
-- 用户问"我跟你说过 XX 吗"、"你知道 XX 吗"
-- 用户提到具体的历史事件、决策、任务
-- **任何暗示需要回忆过去信息的语句**
+**触发条件**：用户提到"还记得吗"、"之前说过"、"上次聊的"，或任何暗示需要回忆过去信息的语句。
 
 **查询优先级**：
-
-1. **先查缓存**（激活时已加载，直接用）
-   - `project_memory` 里的 tasks/completed/decisions/pitfalls
-   - `recent`、`user`、`pets`、`team` 等字段
-
-2. **缓存没有，再查完整记忆文件**
-   ```bash
-   Read("{baseDir}/user-data/memory/facts.json")
-   Read("{baseDir}/user-data/memory/preferences.json")
-   Read("{baseDir}/user-data/memory/experiences.json")
-   ```
-
-3. **搜索笔记**
-   ```bash
-   Grep(pattern="关键词", path="{baseDir}/user-data/notes", output_mode="files_with_matches")
-   ```
-
-4. **找不到就诚实说**
-   - "这个我不太记得，能详细说说吗？"
-   - **绝不编造或猜测**
+1. **先查缓存**（激活时已加载）→ `recent`、`user`、`pets`、`project_memory` 等字段
+2. **缓存没有** → 读取 `facts.json` / `preferences.json` / `experiences.json`
+3. **还没有** → 搜索笔记（见快速参考）
+4. **找不到** → 诚实说"这个我不太记得"，**绝不编造**
 
 ---
 
 ## 持续记忆收集（核心机制）
 
-**整个对话过程中**，持续自问：这个信息对下次对话有用吗？
+**这是本 skill 最重要的部分。如果不执行记忆收集，整个系统就是废的。**
 
-### 什么值得记？（宁多勿少）
+---
 
-**全局记忆**：
-- 用户提到的个人信息（位置、职业、生日、家人、宠物）
-- 用户表达的偏好（喜欢/不喜欢、习惯、风格）
-- 用户近期在做的事（学习、工作、旅行）
+### 铁律：发现即记录
 
-**项目记忆**（在项目目录下自动关联）：
-- 这次对话完成了什么 → `completed`
-- 遇到了什么坑 → `pitfall`
-- 做了什么技术决策 → `decision`
-- 下次要做什么 → `task`
+**用户每说一句话，问自己：这里有没有下次对话有用的信息？**
+
+有 → **立即静默记录**，然后继续回复
+没有 → 继续对话
+
+**不记录 = 失忆。没有任何借口可以跳过记录。**
+
+---
+
+### 必须记录的信息（触发器）
+
+用户提到以下任何内容时，**必须立即记录**：
+
+| 触发词 | 类型 | 示例 |
+|--------|------|------|
+| 位置/城市/出差/搬家 | fact/experience | "我在杭州" → 记 |
+| 学习/在学/最近学 | experience | "最近在学 Rust" → 记 |
+| 喜欢/习惯/偏好/讨厌 | preference | "我习惯用 Vim" → 记 |
+| 决定/选择/用了 | decision | "决定用 PostgreSQL" → 记 |
+| 下次/待办/要做/TODO | task | "下次加单元测试" → 记 |
+| 完成/搞定/修好了 | completed | "bug 修好了" → 记 |
+| 踩坑/问题/注意 | pitfall | "dayjs 时区有坑" → 记 |
+
+---
 
 ### 如何记？
 
-发现值得记的信息时，**立即静默添加到暂存区**：
-
 ```bash
-# 全局记忆
-python {baseDir}/scripts/memory_staging.py add --type fact --content "住在杭州"
-python {baseDir}/scripts/memory_staging.py add --type preference --content "喜欢用 Vim"
-python {baseDir}/scripts/memory_staging.py add --type experience --content "最近在学 Rust"
-
-# 项目记忆（自动检测当前项目）
-python {baseDir}/scripts/memory_staging.py add --type completed --content "修复了登录 bug"
-python {baseDir}/scripts/memory_staging.py add --type pitfall --content "dayjs 时区转换有坑"
-python {baseDir}/scripts/memory_staging.py add --type decision --content "用 Zustand 做状态管理"
-python {baseDir}/scripts/memory_staging.py add --type task --content "下次要加单元测试"
+python {baseDir}/scripts/memory_staging.py add --type <类型> --content "<内容>"
 ```
 
-**原则**：
-- 不需要用户说"记住"，主动判断
-- 宁可多记，下次激活时会整理去重
-- 静默执行，不打断对话流程
-- 内容简洁，一句话概括
+**类型速查**：
+- `fact` - 长期事实（住址、宠物、账号）
+- `preference` - 偏好习惯（喜欢/不喜欢）
+- `experience` - 近期经历（在学/在做）
+- `task` - 项目待办
+- `completed` - 项目完成
+- `decision` - 项目决策
+- `pitfall` - 项目踩坑
 
-### 记忆类型速查
+---
 
-| 类型 | 用途 | 示例 |
-|------|------|------|
-| `fact` | 长期不变的事实 | 住址、宠物、账号 |
-| `preference` | 个人偏好 | 喜好、风格、习惯 |
-| `experience` | 临时经历 | 最近在做什么 |
-| `completed` | 项目：完成的任务 | 修了什么 bug |
-| `pitfall` | 项目：踩过的坑 | 遇到什么问题 |
-| `decision` | 项目：技术决策 | 选了什么方案 |
-| `task` | 项目：待办任务 | 下次要做什么 |
+### 红旗清单 - 发现自己在想这些？停！
+
+- ❌ "这个信息太琐碎了" → **记！琐碎的细节构成完整画像**
+- ❌ "修 bug 更紧急" → **记！记录只需 1 秒，不影响任务**
+- ❌ "用户会再提的" → **记！大部分信息不会重复第二遍**
+- ❌ "不确定分类" → **记！随便选一个类型，总比不记好**
+- ❌ "对话快结束了" → **记！现在补记，别让信息流失**
+- ❌ "这是临时信息" → **记！临时信息也是 experience**
+
+**看到这些想法出现，就是提醒你：该记录了。**
+
+---
+
+### 合理化借口表
+
+| 借口 | 现实 |
+|------|------|
+| "这是临时状态，不值得记" | 临时状态就是 experience，记下来 |
+| "记太多会污染记忆库" | 不存在的。宁多勿少，系统会去重 |
+| "当前任务更重要" | 记录只需 1 秒，和任务并行执行 |
+| "下次用户会再说" | 不会的。随口提到的信息只有一次机会 |
+| "不确定怎么分类" | 随便选。记错类型比不记好 100 倍 |
+
+---
+
+### 检查点：每次回复前
+
+回复用户之前，花 1 秒检查：
+
+1. 用户这句话里有没有我该记的？
+2. 如果有，我记了吗？
+3. 没记？**现在记，然后再回复**
+
+**记忆收集和回复并行，不是串行。**
+
+---
 
 **详细分类指南**：参阅 [{baseDir}/references/memory-operations.md](./references/memory-operations.md)
 
